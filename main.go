@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -10,122 +11,125 @@ import (
 	"mime/multipart"
 	"net/http"
 	"os"
+	"strconv"
 	"time"
 )
 
-type carboneResponseData struct {
+// CarboneResponseData object created during Carbone Render response.
+type CarboneResponseData struct {
 	TemplateID string `json:"templateId,omitempty"`
 	RenderID   string `json:"renderId,omitempty"`
 }
 
-type carboneResponse struct {
+// CarboneResponse object created during Carbone Render response.
+type CarboneResponse struct {
 	Success bool                `json:"success"`
 	Error   string              `json:"error,omitempty"`
-	Data    carboneResponseData `json:"data"`
+	Data    CarboneResponseData `json:"data"`
 }
 
-type carboneSDK struct {
+// CarboneSDK to use Carbone render API easily.
+type CarboneSDK struct {
 	apiAccessToken string
 	apiURL         string
 }
 
-// addTemplate upload your template to Carbone Render.
-func (csdk carboneSDK) addTemplate(templateFileName string, payload string) (carboneResponse, error) {
-	fmt.Println("Payload:", payload)
+// NewCarboneSDK is a constructor and return a new instance of carboneSDK
+func NewCarboneSDK(apiAccessToken string) (CarboneSDK, error) {
+	csdk := CarboneSDK{}
+	if apiAccessToken == "" {
+		return csdk, errors.New("Carbone SDK constructor error: argument is missing: apiAccessToken")
+	}
+	csdk.apiAccessToken = apiAccessToken
+	csdk.apiURL = "https://render.carbone.io/template"
+	return csdk, nil
+}
+
+// AddTemplate upload your template to Carbone Render.
+func (csdk CarboneSDK) AddTemplate(templateFileName string, payload string) (CarboneResponse, error) {
+	cResp := CarboneResponse{}
 	// Create buffer
 	buf := new(bytes.Buffer)
 	// create a tmpfile and assemble your multipart from there
 	w := multipart.NewWriter(buf)
-
-	// Create the data to send
-	// {
-	//		"payload":"",
-	// 		"template": readstream(file...)
-	// }
+	// Create the data object to send
+	// { "payload":"", "template": readstream(file...) }
 	label, err := w.CreateFormField("payload")
 	if err != nil {
-		log.Fatal("Error:", err)
+		return cResp, err
 	}
 	// Write payload content (empty for now)
 	label.Write([]byte(payload))
-
+	// Create the FormData
 	fw, err := w.CreateFormFile("template", templateFileName)
 	if err != nil {
-		log.Fatal(err)
+		return cResp, err
 	}
-
 	// Open Template
 	fd, err := os.Open(templateFileName)
 	if err != nil {
-		log.Fatal(err)
+		return cResp, err
 	}
 	defer fd.Close()
 	// Write file field from file to upload
 	_, err = io.Copy(fw, fd)
 	if err != nil {
-		log.Fatal(err)
+		return cResp, err
 	}
 	// Important if you do not close the multipart writer you will not have a terminating boundry
 	w.Close()
-
+	// Create the request
 	req, err := http.NewRequest("POST", csdk.apiURL, buf)
 	if err != nil {
-		log.Fatal("Error POST request:", err)
+		return cResp, errors.New("Carbone SDK request: failled to create a new request: " + err.Error())
 	}
-
 	// Set headers
 	req.Header.Set("Content-Type", w.FormDataContentType())
 	req.Header.Set("Authorization", csdk.apiAccessToken)
-
 	// Set client timeout
 	client := &http.Client{Timeout: time.Second * 10}
-
 	// Send request
 	resp, err := client.Do(req)
 	if err != nil {
-		log.Fatal("Error reading response. ", err)
+		return cResp, errors.New("Carbone SDK request error: " + strconv.Itoa(resp.StatusCode))
 	}
 	defer resp.Body.Close()
 
-	// fmt.Println("response Status:", resp.Status)
-
 	if resp.StatusCode != http.StatusOK {
-		fmt.Printf("bad status: %s", resp.Status)
-		fmt.Println("response Headers:", resp.Header)
+		return cResp, fmt.Errorf("Carbone SDK request error: status code %d", resp.StatusCode)
 	}
-
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		log.Fatal("Error reading body. ", err)
+		return cResp, errors.New("Carbone SDK request error: failled to read the body: " + err.Error())
 	}
-	fmt.Printf("%s\n", body)
-	cResp := carboneResponse{}
+
 	err = json.Unmarshal(body, &cResp)
 	if err != nil {
-		return cResp, err
+		return cResp, errors.New("Carbone SDK request error: failled to parse the JSON response from the body: " + err.Error())
 	}
 	return cResp, nil
 }
 
-// func
+func (csdk CarboneSDK) Render(templateID string, dataToRender string) error {
+
+}
 
 func main() {
-	csdk := carboneSDK{
-		apiURL:         "https://render.carbone.io/template",
-		apiAccessToken: "eyJhbGciOiJFUzUxMiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiIxNjY3IiwiYXVkIjoiY2FyYm9uZSIsImV4cCI6MjIwNzQwNjQ0NywiZGF0YSI6eyJpZEFjY291bnQiOjE2Njd9fQ.AH2NiPdd8dRC_FNsd4aJ1DHy2wNNhXFmRvyh6PM-jkksfPn7hIIgiUfZ-L7Ng9Jou3eCeLrymjcPuABFVcaGiGvCATAICKX_j7WKBdMO_iPzD1LvL5j35FX1_i513OLqSvqTY_3KvBZO2RXMh4tLWlMn-dhNFLn-aE6IcS3lpce_A2PB",
-	}
-	templateFileName := "./template.odt"
-	cresp, err := csdk.addTemplate(templateFileName, "")
+	csdk, err := NewCarboneSDK("eyJhbGciOiJFUzUxMiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiIxNjY3IiwiYXVkIjoiY2FyYm9uZSIsImV4cCI6MjIwNzQwNjQ0NywiZGF0YSI6eyJpZEFjY291bnQiOjE2Njd9fQ.AH2NiPdd8dRC_FNsd4aJ1DHy2wNNhXFmRvyh6PM-jkksfPn7hIIgiUfZ-L7Ng9Jou3eCeLrymjcPuABFVcaGiGvCATAICKX_j7WKBdMO_iPzD1LvL5j35FX1_i513OLqSvqTY_3KvBZO2RXMh4tLWlMn-dhNFLn-aE6IcS3lpce_A2PB")
 	if err != nil {
 		log.Fatal(err)
 	}
-
-	fmt.Println("Success:", cresp.Success)
-	if cresp.Success == false {
-		log.Fatal(cresp.Error)
-	} else {
-		fmt.Printf("%+v", cresp.Data)
-	}
+	templateID := "f90e67221d7d5ee11058a000bdb997fb41bf149b1f88b45cb1aba9edcab8f868"
+	csdk.Render(templateID, `{"firstname":"Steeve","lastname":"Payraudeau"}`)
+	// cresp, err := csdk.AddTemplate("./template.odt", "")
+	// if err != nil {
+	// 	log.Fatal(err)
+	// }
+	// fmt.Println("Success:", cresp.Success)
+	// if cresp.Success == false {
+	// 	log.Fatal(cresp.Error)
+	// }
+	// fmt.Printf("%+v", cresp.Data)
 }
 
 // templateId: f90e67221d7d5ee11058a000bdb997fb41bf149b1f88b45cb1aba9edcab8f868
