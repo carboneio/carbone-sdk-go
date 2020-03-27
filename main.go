@@ -32,7 +32,7 @@ type CarboneResponse struct {
 type CarboneSDK struct {
 	apiAccessToken string
 	apiURL         string
-	apiTimeOut     int
+	apiTimeOut     time.Duration
 }
 
 // NewCarboneSDK is a constructor and return a new instance of carboneSDK
@@ -42,7 +42,7 @@ func NewCarboneSDK(apiAccessToken string) (CarboneSDK, error) {
 		return csdk, errors.New("Carbone SDK constructor error: argument is missing: apiAccessToken")
 	}
 	csdk.apiAccessToken = apiAccessToken
-	csdk.apiURL = "https://render.carbone.io/template"
+	csdk.apiURL = "https://render.carbone.io"
 	csdk.apiTimeOut = time.Second * 10
 	return csdk, nil
 }
@@ -81,7 +81,7 @@ func (csdk CarboneSDK) AddTemplate(templateFileName string, payload string) (Car
 	// Important if you do not close the multipart writer you will not have a terminating boundry
 	w.Close()
 	// Create the request
-	req, err := http.NewRequest("POST", csdk.apiURL, buf)
+	req, err := http.NewRequest("POST", csdk.apiURL+"/template", buf)
 	if err != nil {
 		return cResp, errors.New("Carbone SDK request: failled to create a new request: " + err.Error())
 	}
@@ -112,21 +112,59 @@ func (csdk CarboneSDK) AddTemplate(templateFileName string, payload string) (Car
 	return cResp, nil
 }
 
-func (csdk CarboneSDK) Render(templateID string, dataToRender string) error {
-	// http.
+// Render a report from a templateID and a json data
+func (csdk CarboneSDK) Render(templateID string, jsonData string) (CarboneResponse, error) {
+	cResp := CarboneResponse{}
+	req, err := http.NewRequest("POST", csdk.apiURL+"/render/"+templateID, bytes.NewBuffer([]byte(jsonData)))
+	if err != nil {
+		return cResp, errors.New("Carbone SDK request: failled to create a new request: " + err.Error())
+	}
+	// Set headers
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Authorization", csdk.apiAccessToken)
+	// Set client timeout
+	client := &http.Client{Timeout: csdk.apiTimeOut}
+	// Send request
+	resp, err := client.Do(req)
+	if err != nil {
+		return cResp, errors.New("Carbone SDK request error: " + strconv.Itoa(resp.StatusCode))
+	}
+	defer resp.Body.Close()
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return cResp, errors.New("Carbone SDK request error: failled to read the body: " + err.Error())
+	}
+	err = json.Unmarshal(body, &cResp)
+	if err != nil {
+		return cResp, errors.New("Carbone SDK request error: failled to parse the JSON response from the body: " + err.Error())
+	}
+	return cResp, nil
 }
+
+// // Get a generated report
+// func (csdk CarboneSDK) GetReport(renderID string) ([]bytes, error) {
+// 	req, err := http.NewRequest("GET")
+// }
 
 func main() {
 	csdk, err := NewCarboneSDK("eyJhbGciOiJFUzUxMiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiIxNjY3IiwiYXVkIjoiY2FyYm9uZSIsImV4cCI6MjIwNzQwNjQ0NywiZGF0YSI6eyJpZEFjY291bnQiOjE2Njd9fQ.AH2NiPdd8dRC_FNsd4aJ1DHy2wNNhXFmRvyh6PM-jkksfPn7hIIgiUfZ-L7Ng9Jou3eCeLrymjcPuABFVcaGiGvCATAICKX_j7WKBdMO_iPzD1LvL5j35FX1_i513OLqSvqTY_3KvBZO2RXMh4tLWlMn-dhNFLn-aE6IcS3lpce_A2PB")
 	if err != nil {
 		log.Fatal(err)
 	}
-	templateID := "f90e67221d7d5ee11058a000bdb997fb41bf149b1f88b45cb1aba9edcab8f868"
-	csdk.Render(templateID, `{"firstname":"Steeve","lastname":"Payraudeau"}`)
+
 	// cresp, err := csdk.AddTemplate("./template.odt", "")
 	// if err != nil {
 	// 	log.Fatal(err)
 	// }
+
+	// templateID := "f90e67221d7d5ee11058a000bdb997fb41bf149b1f88b45cb1aba9edcab8f868"
+	// cresp, err := csdk.Render(templateID, `{"data":{"firstname":"Steeve","lastname":"Payraudeau"},"convertTo":"pdf"}`)
+	// if err != nil {
+	// 	log.Fatal(err)
+	// }
+
+	renderID := "MTAuMjAuMTEuMTEgICAg01E4E8SYJ44DRM8331TW97QMBK.pdf"
+
 	// fmt.Println("Success:", cresp.Success)
 	// if cresp.Success == false {
 	// 	log.Fatal(cresp.Error)
