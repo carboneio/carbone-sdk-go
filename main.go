@@ -14,12 +14,12 @@ import (
 
 type carboneSDK struct {
 	apiAccessToken string
-	apiURL string
+	apiURL         string
 }
 
 // addTemplate upload your template to Carbone Render.
-// It responds a template ID.
-func (csdk carboneSDK) addTemplate(templateFileName string) {
+func (csdk carboneSDK) addTemplate(templateFileName string, payload string) {
+	fmt.Println("Payload:", payload)
 	// Create buffer
 	buf := new(bytes.Buffer)
 	// create a tmpfile and assemble your multipart from there
@@ -35,7 +35,7 @@ func (csdk carboneSDK) addTemplate(templateFileName string) {
 		log.Fatal("Error:", err)
 	}
 	// Write payload content (empty for now)
-	label.Write([]byte(""))
+	label.Write([]byte(payload))
 
 	fw, err := w.CreateFormFile("template", templateFileName)
 	if err != nil {
@@ -91,15 +91,16 @@ func (csdk carboneSDK) addTemplate(templateFileName string) {
 
 func main() {
 	csdk := carboneSDK{
-		apiURL: "https://render.carbone.io/template"
-		apiAccessToken: "eyJhbGciOiJFUzUxMiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiIxNjY3IiwiYXVkIjoiY2FyYm9uZSIsImV4cCI6MjIwNzQwNjQ0NywiZGF0YSI6eyJpZEFjY291bnQiOjE2Njd9fQ.AH2NiPdd8dRC_FNsd4aJ1DHy2wNNhXFmRvyh6PM-jkksfPn7hIIgiUfZ-L7Ng9Jou3eCeLrymjcPuABFVcaGiGvCATAICKX_j7WKBdMO_iPzD1LvL5j35FX1_i513OLqSvqTY_3KvBZO2RXMh4tLWlMn-dhNFLn-aE6IcS3lpce_A2PB"
+		apiURL:         "https://render.carbone.io/template",
+		apiAccessToken: "eyJhbGciOiJFUzUxMiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiIxNjY3IiwiYXVkIjoiY2FyYm9uZSIsImV4cCI6MjIwNzQwNjQ0NywiZGF0YSI6eyJpZEFjY291bnQiOjE2Njd9fQ.AH2NiPdd8dRC_FNsd4aJ1DHy2wNNhXFmRvyh6PM-jkksfPn7hIIgiUfZ-L7Ng9Jou3eCeLrymjcPuABFVcaGiGvCATAICKX_j7WKBdMO_iPzD1LvL5j35FX1_i513OLqSvqTY_3KvBZO2RXMh4tLWlMn-dhNFLn-aE6IcS3lpce_A2PB",
 	}
 	templateFileName := "./template.odt"
 
-	csdk.addTemplate(templateFileName)
+	csdk.addTemplate(templateFileName, "1324")
 }
 
 // templateId: f90e67221d7d5ee11058a000bdb997fb41bf149b1f88b45cb1aba9edcab8f868
+// templateId avec payload 1234: dd226478563e4e1f8a2c38b97c71005b68cdb0f45ce9f9c2155aae4b4fd341d2
 
 // ======= Log cookie and headers are attached
 // fmt.Println(req.Cookies())
