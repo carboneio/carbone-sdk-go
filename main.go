@@ -32,6 +32,7 @@ type CarboneResponse struct {
 type CarboneSDK struct {
 	apiAccessToken string
 	apiURL         string
+	apiTimeOut     int
 }
 
 // NewCarboneSDK is a constructor and return a new instance of carboneSDK
@@ -42,6 +43,7 @@ func NewCarboneSDK(apiAccessToken string) (CarboneSDK, error) {
 	}
 	csdk.apiAccessToken = apiAccessToken
 	csdk.apiURL = "https://render.carbone.io/template"
+	csdk.apiTimeOut = time.Second * 10
 	return csdk, nil
 }
 
@@ -87,7 +89,7 @@ func (csdk CarboneSDK) AddTemplate(templateFileName string, payload string) (Car
 	req.Header.Set("Content-Type", w.FormDataContentType())
 	req.Header.Set("Authorization", csdk.apiAccessToken)
 	// Set client timeout
-	client := &http.Client{Timeout: time.Second * 10}
+	client := &http.Client{Timeout: csdk.apiTimeOut}
 	// Send request
 	resp, err := client.Do(req)
 	if err != nil {
@@ -111,7 +113,7 @@ func (csdk CarboneSDK) AddTemplate(templateFileName string, payload string) (Car
 }
 
 func (csdk CarboneSDK) Render(templateID string, dataToRender string) error {
-
+	// http.
 }
 
 func main() {
