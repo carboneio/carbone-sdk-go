@@ -1,4 +1,4 @@
-package main
+package carbone
 
 import (
 	"bytes"
@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
-	"log"
 	"mime/multipart"
 	"net/http"
 	"os"
@@ -224,62 +223,3 @@ func (csdk CSDK) GetReport(renderID string) ([]byte, error) {
 	}
 	return body, nil
 }
-
-// func (csdk CSDK) Render()
-
-func main() {
-	csdk, err := NewCarboneSDK("eyJhbGciOiJFUzUxMiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiIxNjY3IiwiYXVkIjoiY2FyYm9uZSIsImV4cCI6MjIwNzQwNjQ0NywiZGF0YSI6eyJpZEFjY291bnQiOjE2Njd9fQ.AH2NiPdd8dRC_FNsd4aJ1DHy2wNNhXFmRvyh6PM-jkksfPn7hIIgiUfZ-L7Ng9Jou3eCeLrymjcPuABFVcaGiGvCATAICKX_j7WKBdMO_iPzD1LvL5j35FX1_i513OLqSvqTY_3KvBZO2RXMh4tLWlMn-dhNFLn-aE6IcS3lpce_A2PB")
-	checkError(err)
-
-	// cresp, err := csdk.AddTemplate("./template.odt", "")
-	// if err != nil {
-	// 	log.Fatal(err)
-	// }
-
-	templateID := "f90e67221d7d5ee11058a000bdb997fb41bf149b1f88b45cb1aba9edcab8f868"
-	// template, err := csdk.GetTemplate(templateID)
-	// checkError(err)
-	// ioutil.WriteFile(templateID+"-template.odt", template, 0644)
-
-	cresp, err := csdk.DeleteTemplate(templateID)
-	checkError(err)
-	fmt.Println("Success:", cresp.Success)
-	if cresp.Success == false {
-		log.Fatal(cresp.Error)
-	}
-
-	// cresp, err := csdk.RenderReport(templateID, `{"data":{"firstname":"Felix","lastname":"Arvid Ulf Kjellberg","color":"#00FF00"},"convertTo":"pdf"}`)
-	// if err != nil {
-	// 	log.Fatal(err)
-	// }
-
-	// fmt.Println("Success:", cresp.Success)
-	// if cresp.Success == false {
-	// 	log.Fatal(cresp.Error)
-	// }
-	// fmt.Printf("%+v", cresp.Data)
-
-	// // renderID := "MTAuMjAuMTEuMTEgICAg01E4NAFFCFXM0SE3KVVT8GAK1C.pdf"
-	// file, err := csdk.GetReport(cresp.Data.RenderID)
-	// if err != nil {
-	// 	log.Fatal(err)
-	// }
-	// fmt.Println("Final file:\n", file)
-	// ioutil.WriteFile(cresp.Data.RenderID, file, 0644)
-}
-
-func checkError(err error) {
-	if err != nil {
-		log.Fatal(err)
-	}
-}
-
-// ======= Create a file to debug
-// by, e := ioutil.ReadAll(req.Body)
-// if e != nil {
-// 	log.Fatal(e)
-// }
-// err = ioutil.WriteFile("http.log", by, 0644)
-// if err != nil {
-// 	log.Fatal(err)
-// }
