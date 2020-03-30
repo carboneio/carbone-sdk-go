@@ -17,8 +17,9 @@ import (
 
 // CarboneResponseData object created during Carbone Render response.
 type CarboneResponseData struct {
-	TemplateID string `json:"templateId,omitempty"`
-	RenderID   string `json:"renderId,omitempty"`
+	TemplateID            string `json:"templateId,omitempty"`
+	RenderID              string `json:"renderId,omitempty"`
+	TemplateFileExtension string `json:"inputFileExtension,omitempty"`
 }
 
 // CarboneResponse object created during Carbone Render response.
