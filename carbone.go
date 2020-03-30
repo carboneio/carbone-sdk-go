@@ -133,7 +133,7 @@ func (csdk CSDK) GetTemplate(templateID string) ([]byte, error) {
 		return []byte{}, errors.New("Carbone SDK request error: failled to read the body: " + err.Error())
 	}
 	if len(body) == 0 {
-		return body, errors.New("Carbone SDK request error: The response body is empty: Render again and generate a new renderId")
+		return body, errors.New("Carbone SDK request error: The response body is empty")
 	}
 	return body, nil
 }
