@@ -127,7 +127,7 @@ func (csdk CarboneSDK) Render(templateID string, jsonData string) (CarboneRespon
 	// Send request
 	resp, err := client.Do(req)
 	if err != nil {
-		return cResp, errors.New("Carbone SDK request error: " + strconv.Itoa(resp.StatusCode))
+		return cResp, fmt.Errorf("Carbone SDK request error: status code %d", resp.StatusCode)
 	}
 	defer resp.Body.Close()
 	body, err := ioutil.ReadAll(resp.Body)
@@ -141,10 +141,31 @@ func (csdk CarboneSDK) Render(templateID string, jsonData string) (CarboneRespon
 	return cResp, nil
 }
 
-// // Get a generated report
-// func (csdk CarboneSDK) GetReport(renderID string) ([]bytes, error) {
-// 	req, err := http.NewRequest("GET")
-// }
+// GetReport Request Carbone Render and return a generated report
+func (csdk CarboneSDK) GetReport(renderID string) ([]byte, error) {
+	req, err := http.NewRequest("GET", csdk.apiURL+"/render/"+renderID, nil)
+	if err != nil {
+		return []byte{}, errors.New("Carbone SDK request: failled to create a new request: " + err.Error())
+	}
+	req.Header.Set("Authorization", csdk.apiAccessToken)
+	// Set client timeout
+	client := &http.Client{Timeout: csdk.apiTimeOut}
+	// Send request
+	resp, err := client.Do(req)
+	if err != nil {
+		return []byte{}, fmt.Errorf("Carbone SDK request error: status code %d", resp.StatusCode)
+	}
+	defer resp.Body.Close()
+	// Read the response data and return a []byte. The http package automatically decodes chunking when reading response body.
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return []byte{}, errors.New("Carbone SDK request error: failled to read the body: " + err.Error())
+	}
+	if len(body) == 0 {
+		return body, errors.New("Carbone SDK request error: The response body is empty: Render again and generate a new renderId")
+	}
+	return body, nil
+}
 
 func main() {
 	csdk, err := NewCarboneSDK("eyJhbGciOiJFUzUxMiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiIxNjY3IiwiYXVkIjoiY2FyYm9uZSIsImV4cCI6MjIwNzQwNjQ0NywiZGF0YSI6eyJpZEFjY291bnQiOjE2Njd9fQ.AH2NiPdd8dRC_FNsd4aJ1DHy2wNNhXFmRvyh6PM-jkksfPn7hIIgiUfZ-L7Ng9Jou3eCeLrymjcPuABFVcaGiGvCATAICKX_j7WKBdMO_iPzD1LvL5j35FX1_i513OLqSvqTY_3KvBZO2RXMh4tLWlMn-dhNFLn-aE6IcS3lpce_A2PB")
@@ -163,22 +184,21 @@ func main() {
 	// 	log.Fatal(err)
 	// }
 
-	renderID := "MTAuMjAuMTEuMTEgICAg01E4E8SYJ44DRM8331TW97QMBK.pdf"
-
 	// fmt.Println("Success:", cresp.Success)
 	// if cresp.Success == false {
 	// 	log.Fatal(cresp.Error)
 	// }
-	// fmt.Printf("%+v", cresp.Data)
+	// fmt.Printf("%+v", cresp.Data.RenderID)
+
+	renderID := "MTAuMjAuMTEuMTEgICAg01E4NAFFCFXM0SE3KVVT8GAK1C.pdf"
+	file, err := csdk.GetReport(renderID)
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Println("Final file:\n", file)
+	ioutil.WriteFile("2"+renderID, file, 0644)
 }
 
-// templateId: f90e67221d7d5ee11058a000bdb997fb41bf149b1f88b45cb1aba9edcab8f868
-// templateId avec payload 1234: dd226478563e4e1f8a2c38b97c71005b68cdb0f45ce9f9c2155aae4b4fd341d2
-
-// ======= Log cookie and headers are attached
-// fmt.Println(req.Cookies())
-// fmt.Println(req.Header)
-// fmt.Println(req.Body)
 // ======= Create a file to debug
 // by, e := ioutil.ReadAll(req.Body)
 // if e != nil {
