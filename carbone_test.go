@@ -63,13 +63,13 @@ func TestAddDeleteTwiceTemplate(t *testing.T) {
 	if resp.Success == false {
 		t.Error(resp.Error)
 	}
-	// resp, err = csdk.DeleteTemplate(resp.Data.TemplateID)
-	// if err != nil {
-	// 	t.Error(err)
-	// }
-	// if resp.Success == true {
-	// 	t.Error(errors.New("Error: the template should not be able to delete the template twice"))
-	// }
+	resp, err = csdk.DeleteTemplate(resp.Data.TemplateID)
+	if err != nil {
+		t.Error(err)
+	}
+	if resp.Success == true {
+		t.Error(errors.New("Error: the template should not be able to delete the template twice"))
+	}
 }
 
 func TestRenderTemplate(t *testing.T) {
