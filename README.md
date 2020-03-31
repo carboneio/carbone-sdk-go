@@ -9,6 +9,7 @@
 
 ## TODO
 - [ ] Gérer la génération du Hash templateID
+- [ ] Ajouter la documentation sur le site carbone.io
 
 ## Install
 
