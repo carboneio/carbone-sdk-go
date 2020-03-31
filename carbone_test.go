@@ -2,7 +2,6 @@ package carbone
 
 import (
 	"errors"
-	"fmt"
 	"log"
 	"os"
 	"testing"
@@ -26,10 +25,6 @@ func TestMain(m *testing.M) {
 }
 
 func TestAddTemplate(t *testing.T) {
-	// csdk, err := NewCarboneSDK("eyJhbGciOiJFUzUxMiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiIxNjY3IiwiYXVkIjoiY2FyYm9uZSIsImV4cCI6MjIwNzQwNjQ0NywiZGF0YSI6eyJpZEFjY291bnQiOjE2Njd9fQ.AH2NiPdd8dRC_FNsd4aJ1DHy2wNNhXFmRvyh6PM-jkksfPn7hIIgiUfZ-L7Ng9Jou3eCeLrymjcPuABFVcaGiGvCATAICKX_j7WKBdMO_iPzD1LvL5j35FX1_i513OLqSvqTY_3KvBZO2RXMh4tLWlMn-dhNFLn-aE6IcS3lpce_A2PB")
-	// if err != nil {
-	// 	t.Error(err)
-	// }
 	resp, err := csdk.AddTemplate("./template.odt", "")
 	if err != nil {
 		t.Error(err)
@@ -44,10 +39,6 @@ func TestAddTemplate(t *testing.T) {
 }
 
 func TestGetTemplate(t *testing.T) {
-	// csdk, err := NewCarboneSDK("eyJhbGciOiJFUzUxMiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiIxNjY3IiwiYXVkIjoiY2FyYm9uZSIsImV4cCI6MjIwNzQwNjQ0NywiZGF0YSI6eyJpZEFjY291bnQiOjE2Njd9fQ.AH2NiPdd8dRC_FNsd4aJ1DHy2wNNhXFmRvyh6PM-jkksfPn7hIIgiUfZ-L7Ng9Jou3eCeLrymjcPuABFVcaGiGvCATAICKX_j7WKBdMO_iPzD1LvL5j35FX1_i513OLqSvqTY_3KvBZO2RXMh4tLWlMn-dhNFLn-aE6IcS3lpce_A2PB")
-	// if err != nil {
-	// 	t.Error(err)
-	// }
 	templateData, err := csdk.GetTemplate("f90e67221d7d5ee11058a000bdb997fb41bf149b1f88b45cb1aba9edcab8f868")
 	if err != nil || len(templateData) <= 0 {
 		t.Error(err)
@@ -55,10 +46,6 @@ func TestGetTemplate(t *testing.T) {
 }
 
 func TestAddDeleteTwiceTemplate(t *testing.T) {
-	// csdk, err := NewCarboneSDK("eyJhbGciOiJFUzUxMiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiIxNjY3IiwiYXVkIjoiY2FyYm9uZSIsImV4cCI6MjIwNzQwNjQ0NywiZGF0YSI6eyJpZEFjY291bnQiOjE2Njd9fQ.AH2NiPdd8dRC_FNsd4aJ1DHy2wNNhXFmRvyh6PM-jkksfPn7hIIgiUfZ-L7Ng9Jou3eCeLrymjcPuABFVcaGiGvCATAICKX_j7WKBdMO_iPzD1LvL5j35FX1_i513OLqSvqTY_3KvBZO2RXMh4tLWlMn-dhNFLn-aE6IcS3lpce_A2PB")
-	// if err != nil {
-	// 	t.Error(err)
-	// }
 	resp, err := csdk.AddTemplate("./template.odt", "")
 	if err != nil {
 		t.Error(err)
@@ -69,18 +56,18 @@ func TestAddDeleteTwiceTemplate(t *testing.T) {
 	if len(resp.Data.TemplateID) <= 0 {
 		t.Error(errors.New("templateId not returned from the api"))
 	}
-	res, err := csdk.DeleteTemplate(resp.Data.TemplateID)
+	resp, err = csdk.DeleteTemplate(resp.Data.TemplateID)
 	if err != nil {
 		t.Error(err)
 	}
-	if res.Success == false {
-		t.Error(res.Error)
+	if resp.Success == false {
+		t.Error(resp.Error)
 	}
-	res, err = csdk.DeleteTemplate(resp.Data.TemplateID)
+	resp, err = csdk.DeleteTemplate(resp.Data.TemplateID)
 	if err != nil {
 		t.Error(err)
 	}
-	if res.Success == true {
+	if resp.Success == true {
 		t.Error(errors.New("Error: the template should not be able to delete the template twice"))
 	}
 }
@@ -88,7 +75,6 @@ func TestAddDeleteTwiceTemplate(t *testing.T) {
 func TestRenderTemplate(t *testing.T) {
 	templateID := "f90e67221d7d5ee11058a000bdb997fb41bf149b1f88b45cb1aba9edcab8f868"
 	cresp, err := csdk.RenderReport(templateID, `{"data":{"firstname":"Felix","lastname":"Arvid Ulf Kjellberg","color":"#00FF00"},"convertTo":"pdf"}`)
-	fmt.Printf("%+v", cresp)
 	if err != nil {
 		t.Error(err)
 	}
@@ -98,23 +84,29 @@ func TestRenderTemplate(t *testing.T) {
 	if len(cresp.Data.RenderID) <= 0 {
 		t.Error(errors.New("renderId has not been returned"))
 	}
-	fmt.Printf("%+v", cresp.Data)
 }
 
 func TestRenderAndGetReport(t *testing.T) {
+	templateID := "f90e67221d7d5ee11058a000bdb997fb41bf149b1f88b45cb1aba9edcab8f868"
+	cresp, err := csdk.RenderReport(templateID, `{"data":{"firstname":"Felix","lastname":"Arvid Ulf Kjellberg","color":"#00FF00"},"convertTo":"pdf"}`)
 
+	if err != nil {
+		t.Error(err)
+	}
+	if cresp.Success == false {
+		t.Error(cresp.Error)
+	}
+	if len(cresp.Data.RenderID) <= 0 {
+		t.Error(errors.New("renderId has not been returned"))
+	}
+	template, er := csdk.GetReport(cresp.Data.RenderID)
+	if er != nil {
+		t.Error(template)
+	}
+	if len(template) <= 0 {
+		t.Error(errors.New("Rendered template empty"))
+	}
 }
-
-// func TestGetTemplateAgain(t *testing.T) {
-// 	templateData, err := csdk.GetTemplate(templateID)
-// 	if err != nil || len(templateData) <= 0 {
-// 		t.Error(err)
-// 	}
-// }
-
-// func TestRenderReport(t *testing.T) {
-
-// }
 
 // templateID := "f90e67221d7d5ee11058a000bdb997fb41bf149b1f88b45cb1aba9edcab8f868"
 // template, err := csdk.GetTemplate(templateID)
