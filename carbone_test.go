@@ -25,7 +25,7 @@ func TestMain(m *testing.M) {
 }
 
 func TestAddTemplate(t *testing.T) {
-	resp, err := csdk.AddTemplate("./template.odt", "")
+	resp, err := csdk.AddTemplate("./tests/template.odt", "")
 	if err != nil {
 		t.Error(err)
 	}
@@ -46,7 +46,7 @@ func TestGetTemplate(t *testing.T) {
 }
 
 func TestAddDeleteTwiceTemplate(t *testing.T) {
-	resp, err := csdk.AddTemplate("./template.odt", "")
+	resp, err := csdk.AddTemplate("./tests/template.odt", "")
 	if err != nil {
 		t.Error(err)
 	}
