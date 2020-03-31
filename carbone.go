@@ -33,22 +33,25 @@ type CSDK struct {
 	apiAccessToken string
 	apiURL         string
 	apiTimeOut     time.Duration
+	apiHTTPClient  *http.Client
 }
 
 // NewCarboneSDK is a constructor and return a new instance of CSDK
-func NewCarboneSDK(apiAccessToken string) (CSDK, error) {
-	csdk := CSDK{}
+func NewCarboneSDK(apiAccessToken string) (*CSDK, error) {
 	if apiAccessToken == "" {
-		return csdk, errors.New("Carbone SDK constructor error: argument is missing: apiAccessToken")
+		return nil, errors.New("Carbone SDK constructor error: argument is missing: apiAccessToken")
 	}
-	csdk.apiAccessToken = apiAccessToken
-	csdk.apiURL = "https://render.carbone.io"
-	csdk.apiTimeOut = time.Second * 10
+	csdk := &CSDK{
+		apiAccessToken: apiAccessToken,
+		apiURL:         "https://render.carbone.io",
+		apiTimeOut:     time.Second * 10,
+		apiHTTPClient:  &http.Client{Timeout: time.Second * 10},
+	}
 	return csdk, nil
 }
 
 // AddTemplate upload your template to Carbone Render.
-func (csdk CSDK) AddTemplate(templateFileName string, payload string) (APIResponse, error) {
+func (csdk *CSDK) AddTemplate(templateFileName string, payload string) (APIResponse, error) {
 	cResp := APIResponse{}
 	// Create buffer
 	buf := new(bytes.Buffer)
@@ -113,7 +116,7 @@ func (csdk CSDK) AddTemplate(templateFileName string, payload string) (APIRespon
 }
 
 // GetTemplate returns the original template from the templateId (Unique identifier of the template)
-func (csdk CSDK) GetTemplate(templateID string) ([]byte, error) {
+func (csdk *CSDK) GetTemplate(templateID string) ([]byte, error) {
 	req, err := http.NewRequest("GET", csdk.apiURL+"/template/"+templateID, nil)
 	if err != nil {
 		return []byte{}, errors.New("Carbone SDK request: failled to create a new request: " + err.Error())
@@ -139,7 +142,7 @@ func (csdk CSDK) GetTemplate(templateID string) ([]byte, error) {
 }
 
 // DeleteTemplate Delete an uploaded template from a templateID.
-func (csdk CSDK) DeleteTemplate(templateID string) (APIResponse, error) {
+func (csdk *CSDK) DeleteTemplate(templateID string) (APIResponse, error) {
 	cResp := APIResponse{}
 	// Create client and set timeout
 	client := &http.Client{Timeout: csdk.apiTimeOut}
@@ -170,7 +173,7 @@ func (csdk CSDK) DeleteTemplate(templateID string) (APIResponse, error) {
 }
 
 // RenderReport a report from a templateID and a json data
-func (csdk CSDK) RenderReport(templateID string, jsonData string) (APIResponse, error) {
+func (csdk *CSDK) RenderReport(templateID string, jsonData string) (APIResponse, error) {
 	cResp := APIResponse{}
 	req, err := http.NewRequest("POST", csdk.apiURL+"/render/"+templateID, bytes.NewBuffer([]byte(jsonData)))
 	if err != nil {
@@ -199,7 +202,7 @@ func (csdk CSDK) RenderReport(templateID string, jsonData string) (APIResponse, 
 }
 
 // GetReport Request Carbone Render and return a generated report
-func (csdk CSDK) GetReport(renderID string) ([]byte, error) {
+func (csdk *CSDK) GetReport(renderID string) ([]byte, error) {
 	req, err := http.NewRequest("GET", csdk.apiURL+"/render/"+renderID, nil)
 	if err != nil {
 		return []byte{}, errors.New("Carbone SDK request: failled to create a new request: " + err.Error())
@@ -222,4 +225,39 @@ func (csdk CSDK) GetReport(renderID string) ([]byte, error) {
 		return body, errors.New("Carbone SDK request error: The response body is empty: Render again and generate a new renderId")
 	}
 	return body, nil
+}
+
+// ------------------ private function
+
+func (csdk *CSDK) doHTTPRequest(method, url string, headers map[string]string,
+	body io.Reader) (*http.Response, error) {
+	req, err := http.NewRequest(method, url, body)
+	if err != nil {
+		return nil, err
+	}
+
+	for k, v := range headers {
+		req.Header.Set(k, v)
+	}
+
+	// User Api Token
+	req.Header.Set("Authorization", csdk.apiAccessToken)
+
+	// https://code.google.com/p/go/issues/detail?id=6738
+	// if method == "PUT" || method == "POST" {
+	// 	length := req.Header.Get("Content-Length")
+	// 	if length != "" {
+	// 		req.ContentLength, _ = strconv.ParseInt(length, 10, 64)
+	// 	}
+	// }
+
+	// Send request
+	resp, err := csdk.apiHTTPClient.Do(req)
+
+	if err != nil {
+		return nil, fmt.Errorf("Carbone SDK request error: status code %d: %v", resp.StatusCode, err.Error())
+	}
+	defer resp.Body.Close()
+
+	return resp, nil
 }
