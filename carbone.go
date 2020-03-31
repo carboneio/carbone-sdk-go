@@ -95,7 +95,7 @@ func (csdk *CSDK) AddTemplate(templateFileName string, payload string) (APIRespo
 	if err != nil {
 		return cResp, errors.New("Carbone SDK request error: failled to read the body: " + err.Error())
 	}
-	// Close the connection
+	// Close the connection https://stackoverflow.com/questions/33238518/what-could-happen-if-i-dont-close-response-body
 	defer resp.Body.Close()
 	// Parse JSON body and store into the APIResponse Struct
 	err = json.Unmarshal(body, &cResp)
@@ -138,6 +138,7 @@ func (csdk *CSDK) DeleteTemplate(templateID string) (APIResponse, error) {
 	if err != nil {
 		return cResp, errors.New("Carbone SDK request error: failled to read the body: " + err.Error())
 	}
+	// Close the connection
 	defer resp.Body.Close()
 	// Parse JSON body and store into the APIResponse Struct
 	err = json.Unmarshal(body, &cResp)
@@ -161,6 +162,7 @@ func (csdk *CSDK) RenderReport(templateID string, jsonData string) (APIResponse,
 	if err != nil {
 		return cResp, errors.New("Carbone SDK request error: failled to read the body: " + err.Error())
 	}
+	// Close the connection
 	defer resp.Body.Close()
 	err = json.Unmarshal(body, &cResp)
 	if err != nil {
@@ -181,6 +183,7 @@ func (csdk *CSDK) GetReport(renderID string) ([]byte, error) {
 	if err != nil {
 		return []byte{}, errors.New("Carbone SDK request error: failled to read the body: " + err.Error())
 	}
+	// Close the connection
 	defer resp.Body.Close()
 	if len(body) == 0 {
 		return body, errors.New("Carbone SDK request error: The response body is empty: Render again and generate a new renderId")
