@@ -150,25 +150,18 @@ func (csdk *CSDK) DeleteTemplate(templateID string) (APIResponse, error) {
 // RenderReport a report from a templateID and a json data
 func (csdk *CSDK) RenderReport(templateID string, jsonData string) (APIResponse, error) {
 	cResp := APIResponse{}
-	req, err := http.NewRequest("POST", csdk.apiURL+"/render/"+templateID, bytes.NewBuffer([]byte(jsonData)))
-	if err != nil {
-		return cResp, errors.New("Carbone SDK request: failled to create a new request: " + err.Error())
+	headerRequest := map[string]string{
+		"Content-Type": "application/json",
 	}
-	// Set headers
-	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("Authorization", csdk.apiAccessToken)
-	// Set client timeout
-	client := &http.Client{Timeout: csdk.apiTimeOut}
-	// Send request
-	resp, err := client.Do(req)
+	resp, err := csdk.doHTTPRequest("POST", csdk.apiURL+"/render/"+templateID, headerRequest, bytes.NewBuffer([]byte(jsonData)))
 	if err != nil {
-		return cResp, fmt.Errorf("Carbone SDK request error: status code %d", resp.StatusCode)
+		return cResp, err
 	}
-	defer resp.Body.Close()
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		return cResp, errors.New("Carbone SDK request error: failled to read the body: " + err.Error())
 	}
+	defer resp.Body.Close()
 	err = json.Unmarshal(body, &cResp)
 	if err != nil {
 		return cResp, errors.New("Carbone SDK request error: failled to parse the JSON response from the body: " + err.Error())
@@ -178,24 +171,17 @@ func (csdk *CSDK) RenderReport(templateID string, jsonData string) (APIResponse,
 
 // GetReport Request Carbone Render and return a generated report
 func (csdk *CSDK) GetReport(renderID string) ([]byte, error) {
-	req, err := http.NewRequest("GET", csdk.apiURL+"/render/"+renderID, nil)
+	// http request
+	resp, err := csdk.doHTTPRequest("GET", csdk.apiURL+"/render/"+renderID, nil, nil)
 	if err != nil {
-		return []byte{}, errors.New("Carbone SDK request: failled to create a new request: " + err.Error())
+		return []byte{}, err
 	}
-	req.Header.Set("Authorization", csdk.apiAccessToken)
-	// Set client timeout
-	client := &http.Client{Timeout: csdk.apiTimeOut}
-	// Send request
-	resp, err := client.Do(req)
-	if err != nil {
-		return []byte{}, fmt.Errorf("Carbone SDK request error: status code %d", resp.StatusCode)
-	}
-	defer resp.Body.Close()
 	// Read the response data and return a []byte. The http package automatically decodes chunking when reading response body.
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		return []byte{}, errors.New("Carbone SDK request error: failled to read the body: " + err.Error())
 	}
+	defer resp.Body.Close()
 	if len(body) == 0 {
 		return body, errors.New("Carbone SDK request error: The response body is empty: Render again and generate a new renderId")
 	}
