@@ -128,32 +128,23 @@ func (csdk *CSDK) GetTemplate(templateID string) ([]byte, error) {
 // DeleteTemplate Delete an uploaded template from a templateID.
 func (csdk *CSDK) DeleteTemplate(templateID string) (APIResponse, error) {
 	cResp := APIResponse{}
-	// Create client and set timeout
-	client := &http.Client{Timeout: csdk.apiTimeOut}
-	// Create Request
-	req, err := http.NewRequest("DELETE", csdk.apiURL+"/template/"+templateID, nil)
+	// HTTP Request
+	resp, err := csdk.doHTTPRequest("DELETE", csdk.apiURL+"/template/"+templateID, nil, nil)
 	if err != nil {
-		return cResp, errors.New("Carbone SDK request: failled to create a new request: " + err.Error())
+		return cResp, err
 	}
-	req.Header.Set("Authorization", csdk.apiAccessToken)
-	// Send request
-	resp, err := client.Do(req)
-	if err != nil {
-		return cResp, fmt.Errorf("Carbone SDK request error: status code %d", resp.StatusCode)
-	}
-	defer resp.Body.Close()
 	// Read body
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		return cResp, errors.New("Carbone SDK request error: failled to read the body: " + err.Error())
 	}
+	defer resp.Body.Close()
 	// Parse JSON body and store into the APIResponse Struct
 	err = json.Unmarshal(body, &cResp)
 	if err != nil {
 		return cResp, errors.New("Carbone SDK request error: failled to parse the JSON response from the body: " + err.Error())
 	}
 	return cResp, nil
-
 }
 
 // RenderReport a report from a templateID and a json data
