@@ -34,10 +34,15 @@ func main() {
 
 ## Run tests
 
-To run the tests, just run:
+To run all the tests:
 
-```sh
-go test -v
+```bash
+$ go test -v
+```
+
+To run only one test:
+```bash
+$ go test -v -run NameOfTheTest
 ```
 
 ## 👤 Author

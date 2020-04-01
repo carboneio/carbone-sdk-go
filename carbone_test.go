@@ -2,6 +2,7 @@ package carbone
 
 import (
 	"errors"
+	"io/ioutil"
 	"log"
 	"os"
 	"testing"
@@ -46,6 +47,22 @@ func TestAddTemplateWithEmptyFilePath(t *testing.T) {
 func TestGetTemplate(t *testing.T) {
 	templateData, err := csdk.GetTemplate("f90e67221d7d5ee11058a000bdb997fb41bf149b1f88b45cb1aba9edcab8f868")
 	if err != nil || len(templateData) <= 0 {
+		t.Error(err)
+	}
+}
+
+func TestGetTemplateAndCreateFile(t *testing.T) {
+	os.Remove("template.test.odt")
+	templateData, err := csdk.GetTemplate("f90e67221d7d5ee11058a000bdb997fb41bf149b1f88b45cb1aba9edcab8f868")
+	if err != nil || len(templateData) <= 0 {
+		t.Error(err)
+	}
+	err = ioutil.WriteFile("template.test.odt", templateData, 0644)
+	if err != nil {
+		t.Error(err)
+	}
+	err = os.Remove("template.test.odt")
+	if err != nil {
 		t.Error(err)
 	}
 }
@@ -118,12 +135,42 @@ func TestRenderAndGetReport(t *testing.T) {
 	if len(cresp.Data.RenderID) <= 0 {
 		t.Error(errors.New("renderId has not been returned"))
 	}
-	template, er := csdk.GetReport(cresp.Data.RenderID)
+	report, er := csdk.GetReport(cresp.Data.RenderID)
 	if er != nil {
-		t.Error(template)
+		t.Error(report)
 	}
-	if len(template) <= 0 {
-		t.Error(errors.New("Rendered template empty"))
+	if len(report) <= 0 {
+		t.Error(errors.New("Rendered report empty"))
+	}
+}
+
+func TestRenderAndGetReportAndCreateFile(t *testing.T) {
+	os.Remove("./report.test.pdf")
+	templateID := "f90e67221d7d5ee11058a000bdb997fb41bf149b1f88b45cb1aba9edcab8f868"
+	cresp, err := csdk.RenderReport(templateID, `{"data":{"firstname":"Felix","lastname":"Arvid Ulf Kjellberg","color":"#00FF00"},"convertTo":"pdf"}`)
+	if err != nil {
+		t.Error(err)
+	}
+	if cresp.Success == false {
+		t.Error(cresp.Error)
+	}
+	if len(cresp.Data.RenderID) <= 0 {
+		t.Error(errors.New("renderId has not been returned"))
+	}
+	report, er := csdk.GetReport(cresp.Data.RenderID)
+	if er != nil {
+		t.Error(report)
+	}
+	if len(report) <= 0 {
+		t.Error(errors.New("Rendered report empty"))
+	}
+	er = ioutil.WriteFile("report.test.pdf", report, 0644)
+	if er != nil {
+		t.Error(er)
+	}
+	er = os.Remove("./report.test.pdf")
+	if er != nil {
+		t.Error(er)
 	}
 }
 
@@ -147,45 +194,3 @@ func TestGetReportWithEmptyRenderId(t *testing.T) {
 		t.Error(errors.New("Test failled: the renderID argument is empty and the method should have thrown an error"))
 	}
 }
-
-// templateID := "f90e67221d7d5ee11058a000bdb997fb41bf149b1f88b45cb1aba9edcab8f868"
-// template, err := csdk.GetTemplate(templateID)
-// checkError(err)
-// ioutil.WriteFile(templateID+"-template.odt", template, 0644)
-
-// cresp, err := csdk.DeleteTemplate(templateID)
-// checkError(err)
-// fmt.Printf("%+v", cresp)
-// if cresp.Success == false {
-// 	log.Fatal(cresp.Error)
-// }
-
-// cresp, err := csdk.RenderReport(templateID, `{"data":{"firstname":"Felix","lastname":"Arvid Ulf Kjellberg","color":"#00FF00"},"convertTo":"pdf"}`)
-// if err != nil {
-// 	log.Fatal(err)
-// }
-
-// fmt.Println("Success:", cresp.Success)
-// if cresp.Success == false {
-// 	log.Fatal(cresp.Error)
-// }
-// fmt.Printf("%+v", cresp.Data)
-
-// // renderID := "MTAuMjAuMTEuMTEgICAg01E4NAFFCFXM0SE3KVVT8GAK1C.pdf"
-// file, err := csdk.GetReport(cresp.Data.RenderID)
-// if err != nil {
-// 	log.Fatal(err)
-// }
-// fmt.Println("Final file:\n", file)
-// ioutil.WriteFile(cresp.Data.RenderID, file, 0644)
-// }
-
-// ======= Create a file to debug
-// by, e := ioutil.ReadAll(req.Body)
-// if e != nil {
-// 	log.Fatal(e)
-// }
-// err = ioutil.WriteFile("http.log", by, 0644)
-// if err != nil {
-// 	log.Fatal(err)
-// }
