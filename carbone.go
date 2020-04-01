@@ -1,3 +1,6 @@
+// Package carbone provide an SDK to communicate with Carbone Render
+// Carbone is the most efficient report generator
+// It render from a JSON and LO/MO template into PDF, DOCX, XLSX, PPTX, ODS and many more reports
 package carbone
 
 import (
@@ -52,6 +55,9 @@ func NewCarboneSDK(apiAccessToken string) (*CSDK, error) {
 // AddTemplate upload your template to Carbone Render.
 func (csdk *CSDK) AddTemplate(templateFileName string, payload string) (APIResponse, error) {
 	cResp := APIResponse{}
+	if templateFileName == "" {
+		return cResp, errors.New("Carbone SDK AddTemplate error: argument is missing: templateFileName")
+	}
 	// Create buffer
 	buf := new(bytes.Buffer)
 	// create a tmpfile and assemble your multipart from there
@@ -107,6 +113,9 @@ func (csdk *CSDK) AddTemplate(templateFileName string, payload string) (APIRespo
 
 // GetTemplate returns the original template from the templateId (Unique identifier of the template)
 func (csdk *CSDK) GetTemplate(templateID string) ([]byte, error) {
+	if templateID == "" {
+		return []byte{}, errors.New("Carbone SDK GetTemplate error: argument is missing: templateID")
+	}
 	// Create the request
 	resp, err := csdk.doHTTPRequest("GET", csdk.apiURL+"/template/"+templateID, nil, nil)
 	if err != nil {
@@ -115,12 +124,12 @@ func (csdk *CSDK) GetTemplate(templateID string) ([]byte, error) {
 	// Read the response data and return a []byte. The http package automatically decodes chunking when reading response body.
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		return []byte{}, errors.New("Carbone SDK request error: failled to read the body: " + err.Error())
+		return []byte{}, errors.New("Carbone SDK GetTemplate request error: failled to read the body: " + err.Error())
 	}
 	// Close the connection
 	defer resp.Body.Close()
 	if len(body) == 0 {
-		return body, errors.New("Carbone SDK request error: The response body is empty")
+		return body, errors.New("Carbone SDK GetTemplate request error: The response body is empty")
 	}
 	return body, nil
 }
@@ -128,6 +137,9 @@ func (csdk *CSDK) GetTemplate(templateID string) ([]byte, error) {
 // DeleteTemplate Delete an uploaded template from a templateID.
 func (csdk *CSDK) DeleteTemplate(templateID string) (APIResponse, error) {
 	cResp := APIResponse{}
+	if templateID == "" {
+		return cResp, errors.New("Carbone SDK DeleteTemplate error: argument is missing: templateID")
+	}
 	// HTTP Request
 	resp, err := csdk.doHTTPRequest("DELETE", csdk.apiURL+"/template/"+templateID, nil, nil)
 	if err != nil {
@@ -136,14 +148,14 @@ func (csdk *CSDK) DeleteTemplate(templateID string) (APIResponse, error) {
 	// Read body
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		return cResp, errors.New("Carbone SDK request error: failled to read the body: " + err.Error())
+		return cResp, errors.New("Carbone SDK DeleteTemplate request error: failled to read the body: " + err.Error())
 	}
 	// Close the connection
 	defer resp.Body.Close()
 	// Parse JSON body and store into the APIResponse Struct
 	err = json.Unmarshal(body, &cResp)
 	if err != nil {
-		return cResp, errors.New("Carbone SDK request error: failled to parse the JSON response from the body: " + err.Error())
+		return cResp, errors.New("Carbone SDK DeleteTemplate request error: failled to parse the JSON response from the body: " + err.Error())
 	}
 	return cResp, nil
 }
@@ -151,6 +163,12 @@ func (csdk *CSDK) DeleteTemplate(templateID string) (APIResponse, error) {
 // RenderReport a report from a templateID and a json data
 func (csdk *CSDK) RenderReport(templateID string, jsonData string) (APIResponse, error) {
 	cResp := APIResponse{}
+	if templateID == "" {
+		return cResp, errors.New("Carbone SDK RenderReport error: argument is missing: templateID")
+	}
+	if jsonData == "" {
+		return cResp, errors.New("Carbone SDK RenderReport error: argument is missing: jsonData")
+	}
 	headerRequest := map[string]string{
 		"Content-Type": "application/json",
 	}
@@ -160,19 +178,22 @@ func (csdk *CSDK) RenderReport(templateID string, jsonData string) (APIResponse,
 	}
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		return cResp, errors.New("Carbone SDK request error: failled to read the body: " + err.Error())
+		return cResp, errors.New("Carbone SDK RenderReport request error: failled to read the body: " + err.Error())
 	}
 	// Close the connection
 	defer resp.Body.Close()
 	err = json.Unmarshal(body, &cResp)
 	if err != nil {
-		return cResp, errors.New("Carbone SDK request error: failled to parse the JSON response from the body: " + err.Error())
+		return cResp, errors.New("Carbone SDK RenderReport request error: failled to parse the JSON response from the body: " + err.Error())
 	}
 	return cResp, nil
 }
 
 // GetReport Request Carbone Render and return a generated report
 func (csdk *CSDK) GetReport(renderID string) ([]byte, error) {
+	if renderID == "" {
+		return []byte{}, errors.New("Carbone SDK GetReport error: argument is missing: renderID")
+	}
 	// http request
 	resp, err := csdk.doHTTPRequest("GET", csdk.apiURL+"/render/"+renderID, nil, nil)
 	if err != nil {
@@ -181,12 +202,12 @@ func (csdk *CSDK) GetReport(renderID string) ([]byte, error) {
 	// Read the response data and return a []byte. The http package automatically decodes chunking when reading response body.
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		return []byte{}, errors.New("Carbone SDK request error: failled to read the body: " + err.Error())
+		return []byte{}, errors.New("Carbone SDK GetReport request error: failled to read the body: " + err.Error())
 	}
 	// Close the connection
 	defer resp.Body.Close()
 	if len(body) == 0 {
-		return body, errors.New("Carbone SDK request error: The response body is empty: Render again and generate a new renderId")
+		return body, errors.New("Carbone SDK GetReport request error: The response body is empty: Render again and generate a new renderId")
 	}
 	return body, nil
 }

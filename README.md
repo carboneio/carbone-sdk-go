@@ -28,6 +28,7 @@ import (
 
 func main() {
 	// ...
+	// csdk := carbone.
 }
 ```
 
