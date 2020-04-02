@@ -323,3 +323,17 @@ func TestGetReport(t *testing.T) {
 		}
 	})
 }
+
+/**
+	- Render à partir d'un templateID existant
+	- Rendre un template qui n'existe pas dans le server
+	- Rendre un template qui existe déjà
+	- Rendre un template qui n'existe pas du tout dans le pc
+**/
+
+func TestRender(t *testing.T) {
+	t.Run("Render a report", func(t *testing.T) {
+		// csdk.Render()
+	})
+	// t.Run("", func(t *testing.T){})
+}
