@@ -220,16 +220,16 @@ func (csdk *CSDK) Render(pathOrTemplateID string, jsonData string, payload strin
 	var er error
 
 	if _, err := os.Stat(pathOrTemplateID); os.IsNotExist(err) {
-		// The first argument is a templateID
+		// The first argument `pathOrTemplateID` is a templateID
 		cresp, er = csdk.RenderReport(pathOrTemplateID, jsonData)
 	} else {
-		// argument is a file
+		// The first argument `pathOrTemplateID` is maybe a file
 		templateID, e := csdk.GenerateTemplateID(pathOrTemplateID, payload)
 		if e != nil {
 			return []byte{}, errors.New("Carbone SDK Render error: failled to generate the templateID hash:" + e.Error())
 		}
 		cresp, er = csdk.RenderReport(templateID, jsonData)
-		if er != nil && er.Error() == "Carbone SDK request error: status code 404" {
+		if er != nil && er.Error() == "Carbone SDK Render error: status code 404" {
 			// if 404 response from server = the template does not exist
 			// Then call add template and render again
 			cres, e := csdk.AddTemplate(pathOrTemplateID, payload)
@@ -248,7 +248,7 @@ func (csdk *CSDK) Render(pathOrTemplateID string, jsonData string, payload strin
 		return []byte{}, errors.New(cresp.Error)
 	}
 	if len(cresp.Data.RenderID) <= 0 {
-		return []byte{}, errors.New("Re")
+		return []byte{}, errors.New("Carbone SDK Render error: renderID is empty")
 	}
 	// Return the report
 	return csdk.GetReport(cresp.Data.RenderID)
