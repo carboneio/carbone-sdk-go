@@ -325,15 +325,32 @@ func TestGetReport(t *testing.T) {
 }
 
 /**
-	- Render à partir d'un templateID existant
-	- Rendre un template qui n'existe pas dans le server
-	- Rendre un template qui existe déjà
-	- Rendre un template qui n'existe pas du tout dans le pc
+	- [x] Render à partir d'un templateID existant
+	- [ ] Render à partir d'un templateID qui n'existe pas
+	- [ ] Rendre un template qui n'existe pas dans le server
+	- [ ] Rendre un template qui existe déjà
+	- [ ] Rendre un template qui n'existe pas du tout dans le pc
 **/
 
 func TestRender(t *testing.T) {
-	t.Run("Render a report", func(t *testing.T) {
-		// csdk.Render()
+	t.Run("Render a report from a templateID and create the file", func(t *testing.T) {
+		os.Remove("./tests/report.test.pdf")
+		templateID := "f90e67221d7d5ee11058a000bdb997fb41bf149b1f88b45cb1aba9edcab8f868"
+		jsonData := `{"data":{"firstname":"Felix","lastname":"Arvid Ulf Kjellberg","color":"#00FF00"},"convertTo":"pdf"}`
+		report, err := csdk.Render(templateID, jsonData, "")
+		if err != nil {
+			t.Fatal(err)
+		}
+		if len(report) <= 0 {
+			t.Fatal(errors.New("The report is empty"))
+		}
+		err = ioutil.WriteFile("./tests/report.test.pdf", report, 0644)
+		if err != nil {
+			t.Fatal(err)
+		}
+		err = os.Remove("./tests/report.test.pdf")
+		if err != nil {
+			t.Fatal(err)
+		}
 	})
-	// t.Run("", func(t *testing.T){})
 }
