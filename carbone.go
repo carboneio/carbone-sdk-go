@@ -222,6 +222,9 @@ func (csdk *CSDK) Render(pathOrTemplateID string, jsonData string, payload strin
 	if _, err := os.Stat(pathOrTemplateID); os.IsNotExist(err) {
 		// The first argument `pathOrTemplateID` is a templateID
 		cresp, er = csdk.RenderReport(pathOrTemplateID, jsonData)
+		if er != nil {
+			return []byte{}, er
+		}
 	} else {
 		// The first argument `pathOrTemplateID` is maybe a file
 		templateID, e := csdk.GenerateTemplateID(pathOrTemplateID, payload)
@@ -245,6 +248,7 @@ func (csdk *CSDK) Render(pathOrTemplateID string, jsonData string, payload strin
 		}
 	}
 	if cresp.Success == false {
+		// If error from server is "Error while rendering template Error: 404 Not Found" == TemplateID does not exist
 		return []byte{}, errors.New(cresp.Error)
 	}
 	if len(cresp.Data.RenderID) <= 0 {
