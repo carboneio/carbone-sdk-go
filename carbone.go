@@ -214,6 +214,46 @@ func (csdk *CSDK) GetReport(renderID string) ([]byte, error) {
 	return body, nil
 }
 
+// Render render a report from a templateID OR a template path. It returns a []byte of the file.
+func (csdk *CSDK) Render(pathOrTemplateID string, jsonData string, payload string) ([]byte, error) {
+	var cresp APIResponse
+	var er error
+
+	if _, err := os.Stat(pathOrTemplateID); os.IsNotExist(err) {
+		// The first argument is a templateID
+		cresp, er = csdk.RenderReport(pathOrTemplateID, jsonData)
+	} else {
+		// argument is a file
+		templateID, e := csdk.GenerateTemplateID(pathOrTemplateID, payload)
+		if e != nil {
+			return []byte{}, errors.New("Carbone SDK Render error: failled to generate the templateID hash:" + e.Error())
+		}
+		cresp, er = csdk.RenderReport(templateID, jsonData)
+		if er != nil && er.Error() == "Carbone SDK request error: status code 404" {
+			// if 404 response from server = the template does not exist
+			// Then call add template and render again
+			cres, e := csdk.AddTemplate(pathOrTemplateID, payload)
+			if e != nil {
+				return []byte{}, errors.New("Carbone SDK Render error:" + e.Error())
+			}
+			cresp, er = csdk.RenderReport(cres.Data.TemplateID, jsonData)
+			if er != nil {
+				return []byte{}, errors.New("Carbone SDK Render error:" + er.Error())
+			}
+		} else if er != nil {
+			return []byte{}, er
+		}
+	}
+	if cresp.Success == false {
+		return []byte{}, errors.New(cresp.Error)
+	}
+	if len(cresp.Data.RenderID) <= 0 {
+		return []byte{}, errors.New("Re")
+	}
+	// Return the report
+	return csdk.GetReport(cresp.Data.RenderID)
+}
+
 // GenerateTemplateID Generate the templateID from a template
 func (csdk *CSDK) GenerateTemplateID(filepath string, payload string) (string, error) {
 	// Open the file
@@ -249,14 +289,6 @@ func (csdk *CSDK) doHTTPRequest(method, url string, headers map[string]string,
 
 	// User Api Token
 	req.Header.Set("Authorization", csdk.apiAccessToken)
-
-	// https://code.google.com/p/go/issues/detail?id=6738
-	// if method == "PUT" || method == "POST" {
-	// 	length := req.Header.Get("Content-Length")
-	// 	if length != "" {
-	// 		req.ContentLength, _ = strconv.ParseInt(length, 10, 64)
-	// 	}
-	// }
 
 	// Send request
 	resp, err := csdk.apiHTTPClient.Do(req)
