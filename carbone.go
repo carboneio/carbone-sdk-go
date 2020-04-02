@@ -5,6 +5,8 @@ package carbone
 
 import (
 	"bytes"
+	"crypto/sha256"
+	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -210,6 +212,26 @@ func (csdk *CSDK) GetReport(renderID string) ([]byte, error) {
 		return body, errors.New("Carbone SDK GetReport request error: The response body is empty: Render again and generate a new renderId")
 	}
 	return body, nil
+}
+
+// GenerateTemplateID Generate the templateID from a template
+func (csdk *CSDK) GenerateTemplateID(filepath string, payload string) (string, error) {
+	// Open the file
+	f, err := os.Open(filepath)
+	if err != nil {
+		return "", err
+	}
+	defer f.Close()
+	// New HASH
+	h := sha256.New()
+	// Write payload
+	h.Write([]byte(payload))
+	// Write file buffer
+	if _, err := io.Copy(h, f); err != nil {
+		return "", err
+	}
+	// Return the sha256 has as hexadecimal
+	return hex.EncodeToString(h.Sum(nil)), nil
 }
 
 // ------------------ private function

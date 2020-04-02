@@ -10,11 +10,6 @@ import (
 
 var csdk *CSDK
 
-/**
-	TODO:
-	- Générer le templateID avec la lib crypto
-**/
-
 func TestMain(m *testing.M) {
 	var e error
 	csdk, e = NewCarboneSDK("eyJhbGciOiJFUzUxMiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiIxNjY3IiwiYXVkIjoiY2FyYm9uZSIsImV4cCI6MjIwNzQwNjQ0NywiZGF0YSI6eyJpZEFjY291bnQiOjE2Njd9fQ.AH2NiPdd8dRC_FNsd4aJ1DHy2wNNhXFmRvyh6PM-jkksfPn7hIIgiUfZ-L7Ng9Jou3eCeLrymjcPuABFVcaGiGvCATAICKX_j7WKBdMO_iPzD1LvL5j35FX1_i513OLqSvqTY_3KvBZO2RXMh4tLWlMn-dhNFLn-aE6IcS3lpce_A2PB")
@@ -24,9 +19,123 @@ func TestMain(m *testing.M) {
 	os.Exit(m.Run())
 }
 
+func TestGenerateTemplateID(t *testing.T) {
+	t.Run("(node test 1) generate a templateID from a file without payload", func(t *testing.T) {
+		template := "./tests/template.test.odt"
+		payload := ""
+		expectedHash := "f90e67221d7d5ee11058a000bdb997fb41bf149b1f88b45cb1aba9edcab8f868"
+		resultHash, err := csdk.GenerateTemplateID(template, payload)
+		if err != nil {
+			t.Error(err)
+			return
+		}
+		// fmt.Printf("Expected:%v\nResult:%v\n", expectedHash, resultHash)
+		if expectedHash != resultHash {
+			t.Error(errors.New("Generated templateID not equal"))
+		}
+	})
+
+	t.Run("(node test 2) generate a templateID from a file with payload", func(t *testing.T) {
+		template := "./tests/template.test.odt"
+		payload := "ThisIsAPayload"
+		expectedHash := "2903587f87c80bd3a9b25d17f5db344fa6d276db17363403ac0fcf351a70d5a5"
+		resultHash, err := csdk.GenerateTemplateID(template, payload)
+		if err != nil {
+			t.Error(err)
+			return
+		}
+		// fmt.Printf("Expected:%v\nResult:%v\n", expectedHash, resultHash)
+		if expectedHash != resultHash {
+			t.Error(errors.New("Generated templateID not equal"))
+		}
+	})
+	t.Run("(node test 3) generate a templateID from a file with payload", func(t *testing.T) {
+		template := "./tests/template.test.odt"
+		payload := "8B5PmafbjdRqHuksjHNw83mvPiGj7WTE"
+		expectedHash := "12bcc644ff8479a09f80c01bbd05614599dd102478bc2aa40881a11cf20af21a"
+		resultHash, err := csdk.GenerateTemplateID(template, payload)
+		if err != nil {
+			t.Error(err)
+			return
+		}
+		// fmt.Printf("Expected:%v\nResult:%v\n", expectedHash, resultHash)
+		if expectedHash != resultHash {
+			t.Error(errors.New("Generated templateID not equal"))
+		}
+	})
+	t.Run("(node test 4) generate a templateID from an HTML file without payload", func(t *testing.T) {
+		template := "./tests/index.test.html"
+		payload := ""
+		expectedHash := "75256dd5c260cdf039ae807d3a007e78791e2d8963ea1aa6aff87ba03074df7f"
+		resultHash, err := csdk.GenerateTemplateID(template, payload)
+		if err != nil {
+			t.Error(err)
+			return
+		}
+		// fmt.Printf("Expected:%v\nResult:%v\n", expectedHash, resultHash)
+		if expectedHash != resultHash {
+			t.Error(errors.New("Generated templateID not equal"))
+		}
+	})
+	t.Run("(node test 5) generate a templateID from an HTML file without payload", func(t *testing.T) {
+		template := "./tests/index.test.html"
+		payload := "This is a long payload with different characters 1 *5 &*9 %$ 3%&@9 @(( 3992288282 29299 9299929"
+		expectedHash := "70799b421cc9cf75d9112273a8e054c141d484eb8d5988bd006fac83e3990707"
+		resultHash, err := csdk.GenerateTemplateID(template, payload)
+		if err != nil {
+			t.Error(err)
+			return
+		}
+		// fmt.Printf("Expected:%v\nResult:%v\n", expectedHash, resultHash)
+		if expectedHash != resultHash {
+			t.Error(errors.New("Generated templateID not equal"))
+		}
+	})
+	t.Run("Upload a template without payload and compare the templateID with the generated templateID", func(t *testing.T) {
+		filename := "./tests/index.test.html"
+		payload := ""
+		resp, err := csdk.AddTemplate(filename, payload)
+		if err != nil {
+			t.Error(err)
+			return
+		}
+		if resp.Success == false {
+			t.Error(resp.Error)
+			return
+		}
+		expectedTemplateID, err := csdk.GenerateTemplateID(filename, payload)
+		if err != nil {
+			t.Error(err)
+		}
+		if expectedTemplateID != resp.Data.TemplateID {
+			t.Error(errors.New("Generated templateID not equal"))
+		}
+	})
+	t.Run("Upload a template and compare the templateID with the generated templateID", func(t *testing.T) {
+		filename := "./tests/index.test.html"
+		payload := "7uE5G24ad2Vgnj2zFyiaqfN4dHzm4Xrq"
+		resp, err := csdk.AddTemplate(filename, payload)
+		if err != nil {
+			t.Error(err)
+			return
+		}
+		if resp.Success == false {
+			t.Error(resp.Error)
+			return
+		}
+		expectedTemplateID, err := csdk.GenerateTemplateID(filename, payload)
+		if err != nil {
+			t.Error(err)
+		}
+		if expectedTemplateID != resp.Data.TemplateID {
+			t.Error(errors.New("Generated templateID not equal"))
+		}
+	})
+}
+
 func TestAddTemplate(t *testing.T) {
 	t.Run("Basic Add", func(t *testing.T) {
-		resp, err := csdk.AddTemplate("./tests/template.odt", "")
+		resp, err := csdk.AddTemplate("./tests/template.test.odt", "")
 		if err != nil {
 			t.Error(err)
 		}
@@ -88,7 +197,7 @@ func TestGetTemplate(t *testing.T) {
 
 func TestDeleteTemplate(t *testing.T) {
 	// Setup before deleting
-	res, err := csdk.AddTemplate("./tests/template.odt", "")
+	res, err := csdk.AddTemplate("./tests/template.test.odt", "")
 	if err != nil {
 		t.Error(err)
 	}

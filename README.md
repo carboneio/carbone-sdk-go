@@ -8,8 +8,8 @@
 ### 🔖 [Documentation](https://carbone.io/api-reference.html#carbone-sdk-go)
 
 ## TODO
-- [ ] Gérer la génération du Hash templateID
 - [ ] Ajouter la documentation sur le site carbone.io
+- [ ] Ajouter le package à la librairie public go
 
 ## Install
 
@@ -34,8 +34,7 @@ func main() {
 
 ## Run tests
 
-To run all the tests:
-
+To run all the tests (-v for verbose output):
 ```bash
 $ go test -v
 ```
@@ -43,6 +42,11 @@ $ go test -v
 To run only one test:
 ```bash
 $ go test -v -run NameOfTheTest
+```
+
+If you need to test the generation of templateId, you can use the nodejs `main.js` to test the sha256 generation.
+```bash
+$ node ./tests/main.js
 ```
 
 ## 👤 Author
