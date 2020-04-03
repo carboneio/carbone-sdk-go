@@ -119,28 +119,83 @@ func (csdk *CSDK) GetTemplate(templateID string) ([]byte, error)
 
 Pass a `templateID` to the function and it returns the template as `[]byte`. The templateID must exist otherwise an error is returned by the server.
 
+```go
+	templateData, err := csdk.GetTemplate("TemplateId")
+	if err != nil || len(templateData) <= 0 {
+		t.Error(err)
+	}
+	err = ioutil.WriteFile(filename, templateData, 0644)
+	if err != nil {
+		t.Error(err)
+	}
+```
+
 ### DeleteTemplate
 ```go
 func (csdk *CSDK) DeleteTemplate(templateID string) (APIResponse, error)
+```
+**Example**
+```go
+resp, err := csdk.DeleteTemplate(templateID)
+if err != nil {
+	t.Error(err)
+}
+if resp.Success == false {
+	t.Error(resp.Error)
+}
 ```
 
 ### RenderReport
 ```go
 func (csdk *CSDK) RenderReport(templateID string, jsonData string) (APIResponse, error)
 ```
+Function to render the report from a templateID and a stringify JSON Object with [your data and options](https://carbone.io/api-reference.html#rendering-a-report). It returns a APIResponse struct. The generated report and link is destroyed one hour after rendering.
+
+
+**Example**
+```go
+cresp, err := csdk.RenderReport(templateID, `{"data":{},"convertTo":"pdf"}`)
+if err != nil {
+	t.Error(err)
+}
+if cresp.Success == false {
+	t.Error(cresp.Error)
+}
+if len(cresp.Data.RenderID) <= 0 {
+	t.Error(errors.New("renderId has not been returned"))
+}
+// `cresp.Data.RenderID` can be used to get the report from the `GetReport` function
+```
 
 ### GetReport
 ```go
 func (csdk *CSDK) GetReport(renderID string) ([]byte, error)
 ```
+Return the Report from a renderID.
 
+**Example**
+```go
+reportBuffer, err := csdk.GetReport(cresp.Data.RenderID)
+if err != nil {
+	t.Error(report)
+}
+if len(report) <= 0 {
+	t.Error(errors.New("Report empty"))
+}
+err = ioutil.WriteFile("ReportName.pdf", reportBuffer, 0644)
+if err != nil {
+	log.Fatal(err)
+}
+
+```
 ### GenerateTemplateID
 ```go
 func (csdk *CSDK) GenerateTemplateID(filepath string, payload string) (string, error)
 ```
-The Template ID is predictable and indempotent, pass the template path and it will return the "templateID".
+The Template ID is predictable and indempotent, pass the template path and it will return the `templateID`.
 
 ### SetAccessToken
 ```go
 func (csdk *CSDK) SetAccessToken(newToken string)
 ```
+It set the Carbone access token.
