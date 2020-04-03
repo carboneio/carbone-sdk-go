@@ -7,8 +7,7 @@
 ### 🔖 [API REFERENCE](./API-REFERENCE.md)
 
 ## TODO
-- [ ] Ajouter la documentation sur le site carbone.io
-- [ ] Ajouter le package à la librairie public go
+- [ ] Verify if the package is available online
 
 ## Install
 
