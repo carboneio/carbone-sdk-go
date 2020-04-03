@@ -34,16 +34,22 @@ func main() {
 
 ## Run tests
 
+First, create an environment variable `CARBONE_API_TOKEN` with Carbone access token as value:
+```bash
+$ export CARBONE_API_TOKEN="YOUR_ACCESS_TOKEN"
+```
+You can check this by running:
+```bash
+$ printenv | grep "CARBONE_API_TOKEN"
+```
 To run all the tests (-v for verbose output):
 ```bash
 $ go test -v
 ```
-
 To run only one test:
 ```bash
 $ go test -v -run NameOfTheTest
 ```
-
 If you need to test the generation of templateId, you can use the nodejs `main.js` to test the sha256 generation.
 ```bash
 $ node ./tests/main.js

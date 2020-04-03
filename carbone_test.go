@@ -12,7 +12,11 @@ var csdk *CSDK
 
 func TestMain(m *testing.M) {
 	var e error
-	csdk, e = NewCarboneSDK("eyJhbGciOiJFUzUxMiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiIxNjY3IiwiYXVkIjoiY2FyYm9uZSIsImV4cCI6MjIwNzQwNjQ0NywiZGF0YSI6eyJpZEFjY291bnQiOjE2Njd9fQ.AH2NiPdd8dRC_FNsd4aJ1DHy2wNNhXFmRvyh6PM-jkksfPn7hIIgiUfZ-L7Ng9Jou3eCeLrymjcPuABFVcaGiGvCATAICKX_j7WKBdMO_iPzD1LvL5j35FX1_i513OLqSvqTY_3KvBZO2RXMh4tLWlMn-dhNFLn-aE6IcS3lpce_A2PB")
+	apiAccessToken := os.Getenv("CARBONE_API_TOKEN")
+	if apiAccessToken == "" {
+		log.Fatal(errors.New("Carbone Access token missing: in your terminal set the carbone access token: CARBONE_API_TOKEN"))
+	}
+	csdk, e = NewCarboneSDK(apiAccessToken)
 	if e != nil {
 		log.Fatal(e)
 	}
