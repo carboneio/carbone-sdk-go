@@ -5,9 +5,7 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
-	"strconv"
 	"testing"
-	"time"
 )
 
 var csdk *CSDK
@@ -18,7 +16,10 @@ func TestMain(m *testing.M) {
 	if e != nil {
 		log.Fatal(e)
 	}
-	os.Exit(m.Run())
+	status := m.Run()
+	deleteTmpFiles("tests")
+	deleteTmpFiles("")
+	os.Exit(status)
 }
 
 func TestGenerateTemplateID(t *testing.T) {
@@ -174,16 +175,12 @@ func TestGetTemplate(t *testing.T) {
 	})
 
 	t.Run("Should Get the template and create a file", func(t *testing.T) {
-		os.Remove("template.test.odt")
+		filename := "./tests/template.tmp." + getUnixTime() + ".test.odt"
 		templateData, err := csdk.GetTemplate(templateID)
 		if err != nil || len(templateData) <= 0 {
 			t.Error(err)
 		}
-		err = ioutil.WriteFile("template.test.odt", templateData, 0644)
-		if err != nil {
-			t.Error(err)
-		}
-		err = os.Remove("template.test.odt")
+		err = ioutil.WriteFile(filename, templateData, 0644)
 		if err != nil {
 			t.Error(err)
 		}
@@ -297,7 +294,7 @@ func TestGetReport(t *testing.T) {
 	})
 
 	t.Run("Should Get a report and create a file", func(t *testing.T) {
-		os.Remove("./report.test.pdf")
+		reportname := "./tests/report.tmp." + getUnixTime() + ".test.pdf"
 		cresp, err := csdk.RenderReport(templateID, `{"data":{"firstname":"Felix","lastname":"Arvid Ulf Kjellberg","color":"#00FF00"},"convertTo":"pdf"}`)
 		if err != nil {
 			t.Error(err)
@@ -315,72 +312,92 @@ func TestGetReport(t *testing.T) {
 		if len(report) <= 0 {
 			t.Error(errors.New("Rendered report empty"))
 		}
-		er = ioutil.WriteFile("report.test.pdf", report, 0644)
-		if er != nil {
-			t.Error(er)
-		}
-		er = os.Remove("./report.test.pdf")
+		er = ioutil.WriteFile(reportname, report, 0644)
 		if er != nil {
 			t.Error(er)
 		}
 	})
 }
-
-/**
-	- [x] Render à partir d'un templateID existant
-	- [x] Render à partir d'un templateID qui n'existe pas
-	- [ ] Rendre un template qui n'existe pas dans le server
-	- [ ] Rendre un template qui existe déjà
-	- [ ] Rendre un template qui n'existe pas du tout dans le pc
-**/
 
 func TestRender(t *testing.T) {
 
-	// t.Run("Render a report from a templateID and create the file", func(t *testing.T) {
-	// 	os.Remove("./tests/report.test.pdf")
-	// 	templateID := "f90e67221d7d5ee11058a000bdb997fb41bf149b1f88b45cb1aba9edcab8f868"
-	// 	jsonData := `{"data":{"firstname":"Felix","lastname":"Arvid Ulf Kjellberg","color":"#00FF00"},"convertTo":"pdf"}`
-	// 	report, err := csdk.Render(templateID, jsonData, "")
-	// 	if err != nil {
-	// 		t.Fatal(err)
-	// 	}
-	// 	if len(report) <= 0 {
-	// 		t.Fatal(errors.New("The report is empty"))
-	// 	}
-	// 	err = ioutil.WriteFile("./tests/report.test.pdf", report, 0644)
-	// 	if err != nil {
-	// 		t.Fatal(err)
-	// 	}
-	// 	err = os.Remove("./tests/report.test.pdf")
-	// 	if err != nil {
-	// 		t.Fatal(err)
-	// 	}
-	// })
-
-	// t.Run("Render a report from an fake templateID", func(t *testing.T) {
-	// 	templateID := "ItsnotGonnaWorkSoSad"
-	// 	jsonData := `{"data":{"firstname":"Felix","lastname":"Arvid Ulf Kjellberg","color":"#00FF00"},"convertTo":"pdf"}`
-	// 	report, err := csdk.Render(templateID, jsonData, "")
-	// 	if err == nil {
-	// 		t.Fatal(errors.New("Should have thrown an error"))
-	// 	}
-	// 	if len(report) > 0 {
-	// 		t.Fatal(errors.New("Should have been empty"))
-	// 	}
-	// })
-
-	t.Run("test", func(t *testing.T) {
-		createTemplate()
+	t.Run("Render a report from an existing templateID and create the file", func(t *testing.T) {
+		templateID := "f90e67221d7d5ee11058a000bdb997fb41bf149b1f88b45cb1aba9edcab8f868"
+		jsonData := `{"data":{"firstname":"Felix","lastname":"Arvid Ulf Kjellberg","color":"#00FF00"},"convertTo":"pdf"}`
+		report, err := csdk.Render(templateID, jsonData, "")
+		if err != nil {
+			t.Fatal(err)
+		}
+		if len(report) <= 0 {
+			t.Fatal(errors.New("The report is empty"))
+		}
+		err = ioutil.WriteFile("./tests/report."+templateID+".tmp.test.pdf", report, 0644)
+		if err != nil {
+			t.Fatal(err)
+		}
 	})
-}
 
-func createTemplate() string {
-	now := time.Now().Unix()
-	filename := "tmp." + strconv.FormatInt(now, 10) + ".test.html"
+	t.Run("Render a report from an fake templateID/path (the file does not exist and hasn't been uploaded)", func(t *testing.T) {
+		templateID := "ItsnotGonnaWorkSoSad"
+		jsonData := `{"data":{"firstname":"Felix","lastname":"Arvid Ulf Kjellberg","color":"#00FF00"},"convertTo":"pdf"}`
+		report, err := csdk.Render(templateID, jsonData, "")
+		if err == nil {
+			t.Fatal(errors.New("Should have thrown an error"))
+		}
+		if len(report) > 0 {
+			t.Fatal(errors.New("Should have been empty"))
+		}
+	})
 
-	err := ioutil.WriteFile(filename, []byte("<body>{d.name}</body>"), 0644)
-	if err != nil {
-		log.Fatal(err)
-	}
-	return filename
+	t.Run("Render a report from a fresh new template (path as argument) (create/delete template and create/delete report)", func(t *testing.T) {
+		tmpTemplateNamePath, templateName := createTmpFile("", "")
+		reportNamePath := "./tests/report." + templateName
+		jsonData := `{"data":{"name":"Arvid Ulf Kjellberg"},"convertTo":"html"}`
+		reportBuffer, err := csdk.Render(tmpTemplateNamePath, jsonData, "")
+		if err != nil {
+			t.Fatal(err)
+		}
+		if len(reportBuffer) <= 0 {
+			t.Fatal(errors.New("The report is empty"))
+		}
+		err = ioutil.WriteFile(reportNamePath, reportBuffer, 0644)
+		if err != nil {
+			t.Fatal(err)
+		}
+		templateID, err := csdk.GenerateTemplateID(tmpTemplateNamePath, "")
+		if err != nil {
+			t.Fatal(err)
+		}
+		cresp, err := csdk.DeleteTemplate(templateID)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if cresp.Success == false {
+			t.Fatal(cresp.Error)
+		}
+	})
+
+	t.Run("Render a report from an existing template and create the file (template has already been uploaded)", func(t *testing.T) {
+		templatePath := "./tests/template.test.odt"
+		jsonData := `{"data":{"firstname":"Felix","lastname":"Arvid Ulf Kjellberg","color":"#00FF00"},"convertTo":"pdf"}`
+		reportBuffer, err := csdk.Render(templatePath, jsonData, "")
+		if err != nil {
+			t.Fatal(err)
+		}
+		if len(reportBuffer) <= 0 {
+			t.Fatal(errors.New("The report is empty"))
+		}
+	})
+
+	t.Run("Render and pass a directory path", func(t *testing.T) {
+		templateID := "./tests/"
+		jsonData := `{"data":{"firstname":"Felix","lastname":"Arvid Ulf Kjellberg","color":"#00FF00"},"convertTo":"pdf"}`
+		report, err := csdk.Render(templateID, jsonData, "")
+		if err == nil {
+			t.Fatal(errors.New("Should have thrown an error"))
+		}
+		if len(report) > 0 {
+			t.Fatal(errors.New("Should have been empty"))
+		}
+	})
 }
