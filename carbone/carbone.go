@@ -285,6 +285,11 @@ func (csdk *CSDK) GenerateTemplateID(filepath string, payload string) (string, e
 	return hex.EncodeToString(h.Sum(nil)), nil
 }
 
+// SetAccessToken set the Carbone Render access token
+func (csdk *CSDK) SetAccessToken(newToken string) {
+	csdk.apiAccessToken = newToken
+}
+
 // ------------------ private function
 
 func (csdk *CSDK) doHTTPRequest(method, url string, headers map[string]string,
@@ -299,7 +304,7 @@ func (csdk *CSDK) doHTTPRequest(method, url string, headers map[string]string,
 	}
 
 	// User Api Token
-	req.Header.Set("Authorization", csdk.apiAccessToken)
+	req.Header.Set("Authorization", "Bearer "+csdk.apiAccessToken)
 
 	// Send request
 	resp, err := csdk.apiHTTPClient.Do(req)
