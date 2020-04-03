@@ -20,8 +20,6 @@ go get github.com/Ideolys/carbone-sdk-go
 ## Usage
 
 You can copy and run the code bellow to try.
-The result of this code is the same as the report generated on the Carbone home page.
-
 ```go
 package main
 
