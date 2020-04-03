@@ -19,16 +19,44 @@ go get github.com/Ideolys/carbone-sdk-go
 
 ## Usage
 
+You can copy and run the code bellow to try.
+The result of this code is the same as the report generated on the Carbone home page.
+
 ```go
 package main
 
 import (
-	carbone "github.com/github.com/Ideolys/carbone-sdk-go"
+	"io/ioutil"
+	"log"
+
+	"github.com/Ideolys/carbone-sdk-go/carbone"
 )
 
 func main() {
-	// ...
-	// csdk := carbone.
+	// SDK constructor
+	// The access token can be pass as argument to NewCarboneSDK
+	// Or by the environment variable "CARBONE_TOKEN"
+	// use the command "export CARBONE_TOKEN=secret-token"
+	csdk, err := carbone.NewCarboneSDK("secret-token")
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// The template ID
+	templateID := "template"
+	// Data injected into the template to generate the report with Carbone
+	jsonData := `{"data":{"id":42,"date":1492012745,"company":{"name":"myCompany","address":"here","city":"Notfar","postalCode":123456},"customer":{"name":"myCustomer","address":"there","city":"Faraway","postalCode":654321},"products":[{"name":"product 1","priceUnit":0.1,"quantity":10,"priceTotal":1}],"total":140},"convertTo":"pdf"}`
+
+	// Render and return the report as []byte
+	reportBuffer, err := csdk.Render(templateID, jsonData, "")
+	if err != nil {
+		log.Fatal(err)
+	}
+	// Create the file
+	err = ioutil.WriteFile("Invoice.pdf", reportBuffer, 0644)
+	if err != nil {
+		log.Fatal(err)
+	}
 }
 ```
 
