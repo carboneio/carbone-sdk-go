@@ -12,11 +12,7 @@ var csdk *CSDK
 
 func TestMain(m *testing.M) {
 	var e error
-	apiAccessToken := os.Getenv("CARBONE_API_TOKEN")
-	if apiAccessToken == "" {
-		log.Fatal(errors.New("Carbone Access token missing: in your terminal set the carbone access token: CARBONE_API_TOKEN"))
-	}
-	csdk, e = NewCarboneSDK(apiAccessToken)
+	csdk, e = NewCarboneSDK("")
 	if e != nil {
 		log.Fatal(e)
 	}

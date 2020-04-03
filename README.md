@@ -33,14 +33,17 @@ func main() {
 ```
 
 ## Run tests
-
-First, create an environment variable `CARBONE_API_TOKEN` with Carbone access token as value:
+First, Go to the `carbone` package directory.
 ```bash
-$ export CARBONE_API_TOKEN="YOUR_ACCESS_TOKEN"
+$ cd carbone
+```
+Then, create an environment variable `CARBONE_TOKEN` with Carbone access token as value:
+```bash
+$ export CARBONE_TOKEN="YOUR_ACCESS_TOKEN"
 ```
 You can check this by running:
 ```bash
-$ printenv | grep "CARBONE_API_TOKEN"
+$ printenv | grep "CARBONE_TOKEN"
 ```
 To run all the tests (-v for verbose output):
 ```bash
