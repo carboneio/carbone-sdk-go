@@ -41,10 +41,10 @@ type CSDK struct {
 }
 
 // NewCarboneSDK is a constructor and return a new instance of CSDK
-func NewCarboneSDK(accessToken string) (*CSDK, error) {
+func NewCarboneSDK(args ...string) (*CSDK, error) {
 	apiAccessToken := os.Getenv("CARBONE_TOKEN")
-	if accessToken != "" {
-		apiAccessToken = accessToken
+	if len(args) > 0 && args[0] != "" {
+		apiAccessToken = args[0]
 	}
 	if apiAccessToken == "" {
 		return nil, errors.New(`NewCarboneSDK error: "apiAccessToken" argument OR "CARBONE_TOKEN" env variable is missing`)

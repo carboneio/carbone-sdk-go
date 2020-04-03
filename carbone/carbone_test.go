@@ -12,7 +12,7 @@ var csdk *CSDK
 
 func TestMain(m *testing.M) {
 	var e error
-	csdk, e = NewCarboneSDK("")
+	csdk, e = NewCarboneSDK()
 	if e != nil {
 		log.Fatal(e)
 	}
