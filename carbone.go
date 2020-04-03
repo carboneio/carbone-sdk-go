@@ -1,6 +1,6 @@
 // Package carbone provide an SDK to communicate with Carbone Render
 // Carbone is the most efficient report generator
-// It render from a JSON and LO/MO template into PDF, DOCX, XLSX, PPTX, ODS and many more reports
+// It render from a JSON and template into PDF, DOCX, XLSX, PPTX, ODS and many more reports
 package carbone
 
 import (
