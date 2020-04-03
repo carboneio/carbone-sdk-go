@@ -4,8 +4,7 @@
 
 > The golang SDK to use Carbone Render easily.
 
-### 🏠 [Homepage](https://github.com/Ideolys/carbone-sdk-go)
-### 🔖 [Documentation](https://carbone.io/api-reference.html#carbone-sdk-go)
+### 🔖 [API REFERENCE](./API-REFERENCE.md)
 
 ## TODO
 - [ ] Ajouter la documentation sur le site carbone.io
