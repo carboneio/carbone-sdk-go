@@ -44,7 +44,7 @@ func main() {
 	jsonData := `{"data":{"id":42,"date":1492012745,"company":{"name":"myCompany","address":"here","city":"Notfar","postalCode":123456},"customer":{"name":"myCustomer","address":"there","city":"Faraway","postalCode":654321},"products":[{"name":"product 1","priceUnit":0.1,"quantity":10,"priceTotal":1}],"total":140},"convertTo":"pdf"}`
 
 	// Render and return the report as []byte
-	reportBuffer, err := csdk.Render(templateID, jsonData, "")
+	reportBuffer, err := csdk.Render(templateID, jsonData)
 	if err != nil {
 		log.Fatal(err)
 	}
