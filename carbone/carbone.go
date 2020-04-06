@@ -278,7 +278,14 @@ func (csdk *CSDK) Render(pathOrTemplateID string, jsonData string, args ...strin
 }
 
 // GenerateTemplateID Generate the templateID from a template
-func (csdk *CSDK) GenerateTemplateID(filepath string, payload string) (string, error) {
+// filepath {string}: file path
+// args {...string}: You can set a payload (args[0])
+// returns the file TemplateId
+func (csdk *CSDK) GenerateTemplateID(filepath string, args ...string) (string, error) {
+	payload := ""
+	if len(args) > 0 && args[0] != "" {
+		payload = args[0]
+	}
 	// Open the file
 	f, err := os.Open(filepath)
 	if err != nil {

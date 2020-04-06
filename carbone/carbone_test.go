@@ -24,9 +24,8 @@ func TestMain(m *testing.M) {
 func TestGenerateTemplateID(t *testing.T) {
 	t.Run("(node test 1) generate a templateID from a file without payload", func(t *testing.T) {
 		template := "./tests/template.test.odt"
-		payload := ""
 		expectedHash := "f90e67221d7d5ee11058a000bdb997fb41bf149b1f88b45cb1aba9edcab8f868"
-		resultHash, err := csdk.GenerateTemplateID(template, payload)
+		resultHash, err := csdk.GenerateTemplateID(template)
 		if err != nil {
 			t.Error(err)
 			return
@@ -67,9 +66,8 @@ func TestGenerateTemplateID(t *testing.T) {
 	})
 	t.Run("(node test 4) generate a templateID from an HTML file without payload", func(t *testing.T) {
 		template := "./tests/template.test.html"
-		payload := ""
 		expectedHash := "75256dd5c260cdf039ae807d3a007e78791e2d8963ea1aa6aff87ba03074df7f"
-		resultHash, err := csdk.GenerateTemplateID(template, payload)
+		resultHash, err := csdk.GenerateTemplateID(template)
 		if err != nil {
 			t.Error(err)
 			return
@@ -95,8 +93,7 @@ func TestGenerateTemplateID(t *testing.T) {
 	})
 	t.Run("Upload a template without payload and compare the templateID with the generated templateID", func(t *testing.T) {
 		filename := "./tests/template.test.html"
-		payload := ""
-		resp, err := csdk.AddTemplate(filename, payload)
+		resp, err := csdk.AddTemplate(filename)
 		if err != nil {
 			t.Error(err)
 			return
@@ -105,7 +102,7 @@ func TestGenerateTemplateID(t *testing.T) {
 			t.Error(resp.Error)
 			return
 		}
-		expectedTemplateID, err := csdk.GenerateTemplateID(filename, payload)
+		expectedTemplateID, err := csdk.GenerateTemplateID(filename)
 		if err != nil {
 			t.Error(err)
 		}
