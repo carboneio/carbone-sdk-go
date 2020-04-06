@@ -58,8 +58,12 @@ func NewCarboneSDK(args ...string) (*CSDK, error) {
 	return csdk, nil
 }
 
-// AddTemplate upload your template to Carbone Render.
-func (csdk *CSDK) AddTemplate(templateFileName string, payload string) (APIResponse, error) {
+// AddTemplate upload your template to Carbone Render. The first parameter is the template file path, the second is an optional payload.
+func (csdk *CSDK) AddTemplate(templateFileName string, args ...string) (APIResponse, error) {
+	payload := ""
+	if len(args) > 0 && args[0] != "" {
+		payload = args[0]
+	}
 	cResp := APIResponse{}
 	if templateFileName == "" {
 		return cResp, errors.New("Carbone SDK AddTemplate error: argument is missing: templateFileName")

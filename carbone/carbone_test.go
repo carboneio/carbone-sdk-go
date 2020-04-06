@@ -137,7 +137,20 @@ func TestGenerateTemplateID(t *testing.T) {
 
 func TestAddTemplate(t *testing.T) {
 	t.Run("Basic Add", func(t *testing.T) {
-		resp, err := csdk.AddTemplate("./tests/template.test.odt", "")
+		resp, err := csdk.AddTemplate("./tests/template.test.odt")
+		if err != nil {
+			t.Error(err)
+		}
+		if resp.Success == false {
+			t.Error(resp.Error)
+		}
+		if len(resp.Data.TemplateID) <= 0 {
+			t.Error(errors.New("templateId not returned from the api"))
+		}
+	})
+
+	t.Run("Basic Add with payload", func(t *testing.T) {
+		resp, err := csdk.AddTemplate("./tests/template.test.odt", "This is an optional payload")
 		if err != nil {
 			t.Error(err)
 		}
@@ -150,14 +163,14 @@ func TestAddTemplate(t *testing.T) {
 	})
 
 	t.Run("WithEmptyFilePath", func(t *testing.T) {
-		resp, err := csdk.AddTemplate("", "")
+		resp, err := csdk.AddTemplate("")
 		if err == nil || resp.Success == true {
 			t.Error(errors.New("Test failled: the file path argument is empty and the method should have thrown an error"))
 		}
 	})
 
 	t.Run("WithWrongFilePath", func(t *testing.T) {
-		resp, err := csdk.AddTemplate("./fewijwoeij.odt", "")
+		resp, err := csdk.AddTemplate("./fewijwoeij.odt")
 		if err == nil || resp.Success == true {
 			t.Error(errors.New("Test failled: the file path argument is empty and the method should have thrown an error"))
 		}
