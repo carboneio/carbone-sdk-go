@@ -336,7 +336,7 @@ func TestRender(t *testing.T) {
 	t.Run("Render a report from an existing templateID and create the file", func(t *testing.T) {
 		templateID := "f90e67221d7d5ee11058a000bdb997fb41bf149b1f88b45cb1aba9edcab8f868"
 		jsonData := `{"data":{"firstname":"Felix","lastname":"Arvid Ulf Kjellberg","color":"#00FF00"},"convertTo":"pdf"}`
-		report, err := csdk.Render(templateID, jsonData, "")
+		report, err := csdk.Render(templateID, jsonData)
 		if err != nil {
 			t.Fatal(err)
 		}

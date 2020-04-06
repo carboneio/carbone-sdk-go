@@ -222,10 +222,18 @@ func (csdk *CSDK) GetReport(renderID string) ([]byte, error) {
 	return body, nil
 }
 
-// Render render a report from a templateID OR a template path. It returns a []byte of the file.
-func (csdk *CSDK) Render(pathOrTemplateID string, jsonData string, payload string) ([]byte, error) {
+// Render render a report from a templateID OR a template path.
+// pathOrTemplateID {string}: Accept a file path OR a template ID returned by AddTemplate
+// jsonData {string}: stringify json, all options here: https://carbone.io/api-reference.html#rendering-a-report
+// args {...string}: You can pass an optinal payload used during the template upload (AddTemplate) to create a different templateID.
+// It returns a []byte of the file.
+func (csdk *CSDK) Render(pathOrTemplateID string, jsonData string, args ...string) ([]byte, error) {
 	var cresp APIResponse
 	var er error
+	payload := ""
+	if len(args) > 0 && args[0] != "" {
+		payload = args[0]
+	}
 
 	info, err := os.Stat(pathOrTemplateID)
 	if os.IsNotExist(err) == true {
