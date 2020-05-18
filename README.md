@@ -6,9 +6,6 @@
 
 ### 🔖 [API REFERENCE](./API-REFERENCE.md)
 
-## TODO
-- [ ] Verify if the package is available online
-
 ## Install
 
 ```sh
