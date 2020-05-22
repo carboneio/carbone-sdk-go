@@ -210,10 +210,10 @@ func (csdk *CSDK) SetAPIVersion(version int)
 ```
 It sets the the Carbone version requested. By default, it is calling the version `2` of Carbone.
 
-*Note:* You can only set the major version of carbone.
+*Note:* You can only set a major version of carbone.
 
 ### GetAPIVersion
 ```go
 func (csdk *CSDK) GetAPIVersion() (int, error)
 ```
-It returns the Carbone Render version
+It returns the Carbone version.
