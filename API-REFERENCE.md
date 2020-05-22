@@ -10,7 +10,7 @@ go get github.com/Ideolys/carbone-sdk-go
 
 ## Quickstart with the GO SDK
 
-Try the following code to render a report in 10 seconds. Just replace your API key, the template you want to render, and the data as stringify JSON.
+Try the following code to render a report in 10 seconds. Just replace your API key, the template you want to render, and the data as a stringified JSON.
 
 ```go
 package main
