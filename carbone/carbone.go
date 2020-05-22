@@ -15,6 +15,7 @@ import (
 	"mime/multipart"
 	"net/http"
 	"os"
+	"strconv"
 	"time"
 )
 
@@ -34,6 +35,7 @@ type APIResponse struct {
 
 // CSDK (CarboneSDK) to use Carbone render API easily.
 type CSDK struct {
+	apiVersion     string
 	apiAccessToken string
 	apiURL         string
 	apiTimeOut     time.Duration
@@ -50,6 +52,7 @@ func NewCarboneSDK(args ...string) (*CSDK, error) {
 		return nil, errors.New(`NewCarboneSDK error: "apiAccessToken" argument OR "CARBONE_TOKEN" env variable is missing`)
 	}
 	csdk := &CSDK{
+		apiVersion:     "2",
 		apiAccessToken: apiAccessToken,
 		apiURL:         "https://render.carbone.io",
 		apiTimeOut:     time.Second * 10,
@@ -309,6 +312,16 @@ func (csdk *CSDK) SetAccessToken(newToken string) {
 	csdk.apiAccessToken = newToken
 }
 
+// SetAPIVersion set the Carbone Render version
+func (csdk *CSDK) SetAPIVersion(version int) {
+	csdk.apiVersion = strconv.Itoa(version)
+}
+
+// GetAPIVersion get the Carbone Render version
+func (csdk *CSDK) GetAPIVersion() (int, error) {
+	return strconv.Atoi(csdk.apiVersion)
+}
+
 // ------------------ private function
 
 func (csdk *CSDK) doHTTPRequest(method, url string, headers map[string]string,
@@ -324,6 +337,7 @@ func (csdk *CSDK) doHTTPRequest(method, url string, headers map[string]string,
 
 	// User Api Token
 	req.Header.Set("Authorization", "Bearer "+csdk.apiAccessToken)
+	req.Header.Set("carbone-version", csdk.apiVersion)
 
 	// Send request
 	resp, err := csdk.apiHTTPClient.Do(req)

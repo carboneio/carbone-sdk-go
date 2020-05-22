@@ -30,7 +30,6 @@ func TestGenerateTemplateID(t *testing.T) {
 			t.Error(err)
 			return
 		}
-		// fmt.Printf("Expected:%v\nResult:%v\n", expectedHash, resultHash)
 		if expectedHash != resultHash {
 			t.Error(errors.New("Generated templateID not equal"))
 		}
@@ -45,7 +44,6 @@ func TestGenerateTemplateID(t *testing.T) {
 			t.Error(err)
 			return
 		}
-		// fmt.Printf("Expected:%v\nResult:%v\n", expectedHash, resultHash)
 		if expectedHash != resultHash {
 			t.Error(errors.New("Generated templateID not equal"))
 		}
@@ -59,7 +57,6 @@ func TestGenerateTemplateID(t *testing.T) {
 			t.Error(err)
 			return
 		}
-		// fmt.Printf("Expected:%v\nResult:%v\n", expectedHash, resultHash)
 		if expectedHash != resultHash {
 			t.Error(errors.New("Generated templateID not equal"))
 		}
@@ -72,7 +69,6 @@ func TestGenerateTemplateID(t *testing.T) {
 			t.Error(err)
 			return
 		}
-		// fmt.Printf("Expected:%v\nResult:%v\n", expectedHash, resultHash)
 		if expectedHash != resultHash {
 			t.Error(errors.New("Generated templateID not equal"))
 		}
@@ -86,7 +82,6 @@ func TestGenerateTemplateID(t *testing.T) {
 			t.Error(err)
 			return
 		}
-		// fmt.Printf("Expected:%v\nResult:%v\n", expectedHash, resultHash)
 		if expectedHash != resultHash {
 			t.Error(errors.New("Generated templateID not equal"))
 		}
@@ -411,7 +406,6 @@ func TestRender(t *testing.T) {
 	})
 
 	t.Run("Render the Carbone public report and change the access token.", func(t *testing.T) {
-		// t.Skip("Skip render public report test (because it change the access token)")
 		reportName := "./tests/homereport.tmp.test.pdf"
 		csdk.SetAccessToken("secret-token")
 		templateID := "template"
@@ -424,5 +418,24 @@ func TestRender(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
+	})
+
+	t.Run("Should update the default carbone render version", func(t *testing.T) {
+		v, err := csdk.GetAPIVersion()
+		if err != nil {
+			t.Fatal(err)
+		}
+		if v != 2 {
+			t.Fatal(errors.New("The API version is unvalid"))
+		}
+		csdk.SetAPIVersion(3)
+		v, err = csdk.GetAPIVersion()
+		if err != nil {
+			t.Fatal(err)
+		}
+		if v != 3 {
+			t.Fatal(errors.New("The API version is unvalid"))
+		}
+		csdk.SetAPIVersion(2)
 	})
 }

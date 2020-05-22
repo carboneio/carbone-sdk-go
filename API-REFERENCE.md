@@ -10,7 +10,7 @@ go get github.com/Ideolys/carbone-sdk-go
 
 ## Quickstart with the GO SDK
 
-Try the following code to render a report in 10 seconds. Just replace your API key, the template you want to render and the data as stringify JSON.
+Try the following code to render a report in 10 seconds. Just replace your API key, the template you want to render, and the data as stringify JSON.
 
 ```go
 package main
@@ -50,12 +50,12 @@ func main() {
 func NewCarboneSDK(SecretAccessToken ...string) (*CSDK, error)
 ```
 Function to create a new instance of CSDK (CarboneSDK).
-The access token can be pass as argument to NewCarboneSDK (`args[0]`) or by the environment variable "CARBONE_TOKEN".
+The access token can be pass as an argument to NewCarboneSDK (`args[0]`) or by the environment variable "CARBONE_TOKEN".
 To set a new environment variable, use the command:
 ```bash
 $ export CARBONE_TOKEN=your-secret-token
 ```
-You can check this by running:
+Check if it is set by running:
 ```bash
 $ printenv | grep "CARBONE_TOKEN"
 ```
@@ -70,13 +70,13 @@ csdk, err := carbone.NewCarboneSDK()
 ```go
 func (csdk *CSDK) Render(pathOrTemplateID string, jsonData string, payload ...string) ([]byte, error)
 ```
-The render function takes `pathOrTemplateID` the path of your local file OR a templateID, `jsonData` a stringify json and an optional `payload`.
+The render function takes `pathOrTemplateID` the path of your local file OR a templateID, `jsonData` a stringify JSON, and an optional `payload`.
 
-It returns the report as a []byte. Carbone engine deleted files which has not been used since a while. By using this method, if your file has been deleted, the SDK will automatically upload it again and return you the result.
+It returns the report as a []byte. Carbone engine deleted files that have not been used for a while. By using this method, if your file has been deleted, the SDK will automatically upload it again and return you the result.
 
-When a **template file path** is passed as argument, the function verifies if the template has been uploaded to render the report. If not, it call `AddTemplate` to upload the template to the server and generate a new template ID. Then it call `RenderReport` and `GetReport` to generate the report. If the path does not exist, an error is return.
+When a **template file path** is passed as an argument, the function verifies if the template has been uploaded to render the report. If not, it calls `AddTemplate` to upload the template to the server and generate a new template ID. Then it calls `RenderReport` and `GetReport` to generate the report. If the path does not exist, an error is returned.
 
-When a **templateID** is passed as argument, the function render with `RenderReport` then call `GetReport` to return the report. If the templateID does not exist, an error is return.
+When a **templateID** is passed as an argument, the function renders with `RenderReport` then call `GetReport` to return the report. If the templateID does not exist, an error is returned.
 
 **Example**
 ```go
@@ -96,7 +96,7 @@ if err != nil {
 ```go
 func (csdk *CSDK) AddTemplate(templateFileName string, payload ...string) (APIResponse, error)
 ```
-Add the template to the API and returns an `APIResponse` struct with a `TemplateID`.
+Add the template to the API and returns an `APIResponse` struct (that contains a `TemplateID`).
 You can add multiple times the same template and get different templateId thanks to the optional `payload`.
 
 **Example**
@@ -151,7 +151,7 @@ if resp.Success == false {
 ```go
 func (csdk *CSDK) RenderReport(templateID string, jsonData string) (APIResponse, error)
 ```
-Function to render the report from a templateID and a stringify JSON Object with [your data and options](https://carbone.io/api-reference.html#rendering-a-report). It returns a APIResponse struct. The generated report and link is destroyed one hour after rendering.
+Function to render the report from a templateID and a stringified JSON Object with [your data and options](https://carbone.io/api-reference.html#rendering-a-report). It returns a APIResponse struct. The generated report and link are destroyed one hour after rendering.
 
 
 **Example**
@@ -194,12 +194,26 @@ if err != nil {
 ```go
 func (csdk *CSDK) GenerateTemplateID(filepath string, payload ...string) (string, error)
 ```
-The Template ID is predictable and indempotent, pass the template path and it will return the `templateID`.
-You can get different templateId thanks to the optional `payload`.
+The Template ID is predictable and idempotent, pass the template path and it will return the `templateID`.
+You can get a different templateId thanks to the optional `payload`.
 
 
 ### SetAccessToken
 ```go
 func (csdk *CSDK) SetAccessToken(newToken string)
 ```
-It set the Carbone access token.
+It sets the Carbone access token.
+
+### SetAPIVersion
+```go
+func (csdk *CSDK) SetAPIVersion(version int)
+```
+It sets the the Carbone version requested. By default, it is calling the version `2` of Carbone.
+
+*Note:* You can only set the major version of carbone.
+
+### GetAPIVersion
+```go
+func (csdk *CSDK) GetAPIVersion() (int, error)
+```
+It returns the Carbone Render version
