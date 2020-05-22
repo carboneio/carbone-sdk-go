@@ -58,11 +58,11 @@ First, Go to the `carbone` package directory.
 ```bash
 $ cd carbone
 ```
-Then, create an environment variable `CARBONE_TOKEN` with Carbone access token as value:
+Then, create an environment variable `CARBONE_TOKEN` with the Carbone access token as value:
 ```bash
 $ export CARBONE_TOKEN="YOUR_ACCESS_TOKEN"
 ```
-You can check this by running:
+Check if it is set by running:
 ```bash
 $ printenv | grep "CARBONE_TOKEN"
 ```
