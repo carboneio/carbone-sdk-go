@@ -27,9 +27,8 @@ import (
 
 func main() {
 	// SDK constructor
-	// The access token can be pass as argument to NewCarboneSDK
-	// Or by the environment variable "CARBONE_TOKEN"
-	// use the command "export CARBONE_TOKEN=secret-token"
+	// The access token can be passed as an argument to NewCarboneSDK
+	// Or by the environment variable "CARBONE_TOKEN", use the command "export CARBONE_TOKEN=secret-token"
 	csdk, err := carbone.NewCarboneSDK("secret-token")
 	if err != nil {
 		log.Fatal(err)
@@ -52,6 +51,8 @@ func main() {
 	}
 }
 ```
+## Documentation
+- [API REFERENCE](./API-REFERENCE.md)
 
 ## Run tests
 First, Go to the `carbone` package directory.
