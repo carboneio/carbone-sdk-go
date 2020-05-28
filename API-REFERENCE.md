@@ -1,6 +1,6 @@
-# GO Carbone SDK
+# Carbone Render Go SDK
 
-The GO Carbone SDK provide an simple interface to communicate with Carbone Render easily.
+The Carbone Go SDK provides a simple interface to communicate with Carbone Render easily.
 
 ## Install the GO SDK
 
