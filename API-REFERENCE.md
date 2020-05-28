@@ -70,13 +70,13 @@ csdk, err := carbone.NewCarboneSDK()
 ```go
 func (csdk *CSDK) Render(pathOrTemplateID string, jsonData string, payload ...string) ([]byte, error)
 ```
-The render function takes `pathOrTemplateID` the path of your local file OR a templateID, `jsonData` a stringify JSON, and an optional `payload`.
+The render function takes `pathOrTemplateID` the path of your local file OR a templateID, `jsonData` a stringified JSON, and an optional `payload`.
 
-It returns the report as a []byte. Carbone engine deleted files that have not been used for a while. By using this method, if your file has been deleted, the SDK will automatically upload it again and return you the result.
+It returns the report as a `[]byte`. Carbone engine deleted files that have not been used for a while. By using this method, if your file has been deleted, the SDK will automatically upload it again and return you the result.
 
-When a **template file path** is passed as an argument, the function verifies if the template has been uploaded to render the report. If not, it calls `AddTemplate` to upload the template to the server and generate a new template ID. Then it calls `RenderReport` and `GetReport` to generate the report. If the path does not exist, an error is returned.
+When a **template file path** is passed as an argument, the function verifies if the template has been uploaded to render the report. If not, it calls [AddTemplate](#AddTemplate) to upload the template to the server and generate a new template ID. Then it calls [RenderReport](#RenderReport) and [GetReport](#GetReport) to generate the report. If the path does not exist, an error is returned.
 
-When a **templateID** is passed as an argument, the function renders with `RenderReport` then call `GetReport` to return the report. If the templateID does not exist, an error is returned.
+When a **templateID** is passed as an argument, the function renders with [RenderReport](#RenderReport) then call [GetReport](#GetReport) to return the report. If the templateID does not exist, an error is returned.
 
 **Example**
 ```go
@@ -151,7 +151,7 @@ if resp.Success == false {
 ```go
 func (csdk *CSDK) RenderReport(templateID string, jsonData string) (APIResponse, error)
 ```
-Function to render the report from a templateID and a stringified JSON Object with [your data and options](https://carbone.io/api-reference.html#rendering-a-report). It returns a APIResponse struct. The generated report and link are destroyed one hour after rendering.
+Function to render the report from a templateID and a stringified JSON Object with [datas and options](https://carbone.io/api-reference.html#rendering-a-report). It returns a APIResponse struct. The generated report and link are destroyed one hour after rendering.
 
 
 **Example**
