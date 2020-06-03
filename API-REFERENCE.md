@@ -147,49 +147,6 @@ if resp.Success == false {
 }
 ```
 
-### RenderReport
-```go
-func (csdk *CSDK) RenderReport(templateID string, jsonData string) (APIResponse, error)
-```
-Function to render the report from a templateID and a stringified JSON Object with [datas and options](https://carbone.io/api-reference.html#rendering-a-report). It returns a APIResponse struct. The generated report and link are destroyed one hour after rendering.
-
-
-**Example**
-```go
-cresp, err := csdk.RenderReport(templateID, `{"data":{},"convertTo":"pdf"}`)
-if err != nil {
-	t.Error(err)
-}
-if cresp.Success == false {
-	t.Error(cresp.Error)
-}
-if len(cresp.Data.RenderID) <= 0 {
-	t.Error(errors.New("renderId has not been returned"))
-}
-// `cresp.Data.RenderID` can be used to get the report from the `GetReport` function
-```
-
-### GetReport
-```go
-func (csdk *CSDK) GetReport(renderID string) ([]byte, error)
-```
-Return the Report from a renderID.
-
-**Example**
-```go
-reportBuffer, err := csdk.GetReport(cresp.Data.RenderID)
-if err != nil {
-	t.Error(report)
-}
-if len(report) <= 0 {
-	t.Error(errors.New("Report empty"))
-}
-err = ioutil.WriteFile("ReportName.pdf", reportBuffer, 0644)
-if err != nil {
-	log.Fatal(err)
-}
-
-```
 ### GenerateTemplateID
 ```go
 func (csdk *CSDK) GenerateTemplateID(filepath string, payload ...string) (string, error)
