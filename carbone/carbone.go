@@ -323,8 +323,7 @@ func (csdk *CSDK) GetAPIVersion() (int, error) {
 }
 
 // ------------------ private function
-
-func (csdk *CSDK) doHTTPRequest(method, url string, headers map[string]string,
+func (csdk *CSDK) doHTTPRequest(method string, url string, headers map[string]string,
 	body io.Reader) (*http.Response, error) {
 	req, err := http.NewRequest(method, url, body)
 	if err != nil {
