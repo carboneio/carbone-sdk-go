@@ -90,45 +90,6 @@ func TestGenerateTemplateID(t *testing.T) {
 			t.Error(errors.New("Generated templateID not equal"))
 		}
 	})
-	t.Run("Upload a template without payload and compare the templateID with the generated templateID", func(t *testing.T) {
-		filename := "./tests/template.test.html"
-		resp, err := csdk.AddTemplate(filename)
-		if err != nil {
-			t.Error(err)
-			return
-		}
-		if resp.Success == false {
-			t.Error(resp.Error)
-			return
-		}
-		expectedTemplateID, err := csdk.GenerateTemplateID(filename)
-		if err != nil {
-			t.Error(err)
-		}
-		if expectedTemplateID != resp.Data.TemplateID {
-			t.Error(errors.New("Generated templateID not equal"))
-		}
-	})
-	t.Run("Upload a template and compare the templateID with the generated templateID", func(t *testing.T) {
-		filename := "./tests/template.test.html"
-		payload := "7uE5G24ad2Vgnj2zFyiaqfN4dHzm4Xrq"
-		resp, err := csdk.AddTemplate(filename, payload)
-		if err != nil {
-			t.Error(err)
-			return
-		}
-		if resp.Success == false {
-			t.Error(resp.Error)
-			return
-		}
-		expectedTemplateID, err := csdk.GenerateTemplateID(filename, payload)
-		if err != nil {
-			t.Error(err)
-		}
-		if expectedTemplateID != resp.Data.TemplateID {
-			t.Error(errors.New("Generated templateID not equal"))
-		}
-	})
 }
 
 func TestAddTemplate(t *testing.T) {
@@ -384,7 +345,7 @@ func TestGetReport(t *testing.T) {
 			return
 		}
 
-		// --- test create file
+		// --- test compare content
 		if string(report) != string(htmlBytes) {
 			t.Error(errors.New("The content is not equal"))
 			return
@@ -459,6 +420,7 @@ func TestRender(t *testing.T) {
 		templateID, err := csdk.GenerateTemplateID("./tests/template.test.html", payload)
 		renderID := "feowjf329jf9823jf9823j9f238jf9832jf"
 		fileContent := "<xml>File Content</xml>"
+		nbrPOSTrequestCall := 0
 		if err != nil {
 			t.Fatal(errors.New("Can't generate the templateId"))
 		}
@@ -466,17 +428,19 @@ func TestRender(t *testing.T) {
 		// ---- httpmock
 		httpmock.Activate()
 		defer httpmock.DeactivateAndReset()
-		// 1 - test render from generated templateID but it does not exist
+
 		httpmock.RegisterResponder("POST", "https://render.carbone.io/render/"+templateID,
-			httpmock.NewStringResponder(200, `{"success" : false, "error": "Error while rendering template Error: 404 Not Found"}`))
-		// .Once(
-		// 	func() httpmock.Responder {
-		// 		return httpmock.NewStringResponder(200, `{"success" : true,"error":null,"data": {"renderId": "`+renderID+`"}}`)
-		// 	}))
+			func(req *http.Request) (*http.Response, error) {
+				if nbrPOSTrequestCall >= 1 {
+					// 3 - render the report and return a reportID // REQUEST NO CALLED
+					return httpmock.NewStringResponse(200, `{"success" : true, "error":null, "data": {"renderId": "`+renderID+`"}}`), nil
+				}
+				nbrPOSTrequestCall++
+				// 1 - test render from generated templateID but it does not exist
+				return httpmock.NewStringResponse(200, `{"success" : false, "error": "Error while rendering template Error: 404 Not Found"}`), nil
+			})
 		// 2 - upload the template and return the template ID
 		httpmock.RegisterResponder("POST", "https://render.carbone.io/template", httpmock.NewStringResponder(200, `{ "success" : false, "data": {"templateId" : "`+templateID+`" }}`))
-		// 3 - render the report and return a reportID // REQUEST NO CALLED
-		httpmock.RegisterResponder("POST", "https://render.carbone.io/render/"+templateID, httpmock.NewStringResponder(200, `{"success" : true,"error":null,"data": {"renderId": "`+renderID+`"}}`))
 		// 4 - Get the template
 		httpmock.RegisterResponder("GET", "https://render.carbone.io/render/"+renderID, httpmock.NewBytesResponder(200, []byte(fileContent)))
 		// ----
@@ -493,13 +457,12 @@ func TestRender(t *testing.T) {
 			t.Fatal(errors.New("The content is different"))
 		}
 		// --- test httpmock
-		// if httpmock.GetTotalCallCount() != 4 {
-		// 	t.Fatal(errors.New("HTTPMOCH error - the number of requests is invalid"))
-		// }
-		// fmt.Printf("Total requests: %v\n", httpmock.GetCallCountInfo())
+		if httpmock.GetTotalCallCount() != 4 {
+			t.Fatal(errors.New("HTTPMOCH error - the number of requests is invalid"))
+		}
 	})
 
-	t.Run("Render a report from an existing template (template has already been uploaded)", func(t *testing.T) {
+	t.Run("Render a report from an existing template, the template has already been uploaded (templateID)", func(t *testing.T) {
 		templatePath := "./tests/template.test.html"
 		templateID, err := csdk.GenerateTemplateID(templatePath)
 		renderID := "feowjf329jf9823jf9823j9f238jf9832jf"
