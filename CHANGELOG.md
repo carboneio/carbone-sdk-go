@@ -1,3 +1,6 @@
+### v1.0.1
+ - Fix the `Render` method, add test and comments
+
 ### v1.0.0
   - Release July 3rd, 2020
   - It is possible to interact with the Carbone Render API with the following methods:
