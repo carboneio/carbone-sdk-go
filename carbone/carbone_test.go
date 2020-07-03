@@ -496,6 +496,42 @@ func TestRender(t *testing.T) {
 		}
 	})
 
+	t.Run("Render a report from a new template but the API return an error twice", func(t *testing.T) {
+		payload := getUnixTime()
+		templateID, err := csdk.GenerateTemplateID("./tests/template.test.html", payload)
+		renderID := "feowjf329jf9823jf9823j9f238jf9832jf"
+		fileContent := "<xml>File Content</xml>"
+		errorMessage := "Error while rendering template Error: 404 Not Found"
+		if err != nil {
+			t.Fatal(errors.New("Can't generate the templateId"))
+		}
+
+		// ---- httpmock
+		httpmock.Activate()
+		defer httpmock.DeactivateAndReset()
+
+		// 1 - {CALLED TWICE} test render from generated templateID but it does not exist
+		httpmock.RegisterResponder("POST", "https://render.carbone.io/render/"+templateID, httpmock.NewStringResponder(200, `{"success" : false, "error": "`+errorMessage+`"}`))
+		// 2 - upload the template and return the template ID
+		httpmock.RegisterResponder("POST", "https://render.carbone.io/template", httpmock.NewStringResponder(200, `{ "success" : false, "data": {"templateId" : "`+templateID+`" }}`))
+		// 4 - Get the template
+		httpmock.RegisterResponder("GET", "https://render.carbone.io/render/"+renderID, httpmock.NewBytesResponder(200, []byte(fileContent)))
+		// ----
+
+		jsonData := `{"data":{"name":"Arvid Ulf Kjellberg"},"convertTo":"html"}`
+		reportBuffer, err := csdk.Render("./tests/template.test.html", jsonData, payload)
+		if err.Error() != errorMessage {
+			t.Fatal(errors.New("Should have returned an error"))
+		}
+		if string(reportBuffer) != "" {
+			t.Fatal(errors.New("The buffer should have been empty"))
+		}
+		// --- test httpmock
+		if httpmock.GetTotalCallCount() != 3 {
+			t.Fatal(errors.New("HTTPMOCH error - the number of requests is invalid"))
+		}
+	})
+
 	t.Run("Render and pass a directory path", func(t *testing.T) {
 		templateID := "./tests/"
 		jsonData := `{"data":{"firstname":"Felix","lastname":"Arvid Ulf Kjellberg","color":"#00FF00"},"convertTo":"pdf"}`

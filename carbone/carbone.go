@@ -237,7 +237,6 @@ func (csdk *CSDK) Render(pathOrTemplateID string, jsonData string, args ...strin
 	if len(args) > 0 && args[0] != "" {
 		payload = args[0]
 	}
-
 	info, err := os.Stat(pathOrTemplateID)
 	if os.IsNotExist(err) == true {
 		// The first argument `pathOrTemplateID` is a templateID
@@ -256,8 +255,10 @@ func (csdk *CSDK) Render(pathOrTemplateID string, jsonData string, args ...strin
 		cresp, er = csdk.RenderReport(templateID, jsonData)
 		if er != nil {
 			return []byte{}, er
-		} else if cresp.Success == false && cresp.Error == "Error while rendering template Error: 404 Not Found" {
-			// if 404 response from server = the template does not exist
+		} else if cresp.Success == false {
+			// if RenderReport return one of the following error, it means the template does not exist
+			// - Error while rendering template Error: ENOENT:File not found
+			// - Error while rendering template Error: 404 Not Found
 			// Then call add template and render again
 			cres, e := csdk.AddTemplate(pathOrTemplateID, payload)
 			if e != nil {
@@ -270,7 +271,8 @@ func (csdk *CSDK) Render(pathOrTemplateID string, jsonData string, args ...strin
 		}
 	}
 	if cresp.Success == false {
-		// If error from server is "Error while rendering template Error: 404 Not Found" it means TemplateID does not exist
+		// If an error is returned, it means something went wrong.
+		// if the error is "Error while rendering template Error: 404 Not Found" or "ENOENT:File not found" it means TemplateID does not exist
 		return []byte{}, errors.New(cresp.Error)
 	}
 	if len(cresp.Data.RenderID) <= 0 {
@@ -341,10 +343,8 @@ func (csdk *CSDK) doHTTPRequest(method string, url string, headers map[string]st
 	// Send request
 	resp, err := csdk.apiHTTPClient.Do(req)
 	if err != nil {
-
 		return nil, fmt.Errorf("Carbone SDK request error: %v", err.Error())
 	}
-	// fmt.Printf("%+v", csdk.apiAccessToken)
 	if resp.StatusCode != http.StatusOK {
 		return nil, fmt.Errorf("Carbone SDK request error: status code %d", resp.StatusCode)
 	}
