@@ -4,7 +4,7 @@ import (
 	"io/ioutil"
 	"log"
 
-	"github.com/Ideolys/carbone-sdk-go/carbone"
+	"github.com/carboneio/carbone-sdk-go/carbone"
 )
 
 func main() {

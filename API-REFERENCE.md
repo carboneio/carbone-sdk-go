@@ -5,7 +5,7 @@ The Carbone Go SDK provides a simple interface to communicate with Carbone Rende
 ## Install the GO SDK
 
 ```sh
-go get github.com/Ideolys/carbone-sdk-go
+go get github.com/carboneio/carbone-sdk-go
 ```
 
 ## Quickstart with the GO SDK
@@ -19,7 +19,7 @@ import (
 	"io/ioutil"
 	"log"
 
-	"github.com/Ideolys/carbone-sdk-go/carbone"
+	"github.com/carboneio/carbone-sdk-go/carbone"
 )
 
 func main() {

@@ -1,6 +1,6 @@
 # Carbone Render Go SDK
-![Version](https://img.shields.io/badge/version-1.0.1-blue.svg?cacheSeconds=2592000)
-[![Documentation](https://img.shields.io/badge/documentation-yes-brightgreen.svg)](https://carbone.io/api-reference.html#carbone-sdk-go)
+![Version](https://img.shields.io/badge/version-1.0.2-blue.svg?cacheSeconds=2592000)
+[![Documentation](https://img.shields.io/badge/documentation-yes-brightgreen.svg)](./API-REFERENCE.md)
 
 > The golang SDK to use Carbone Render easily.
 
@@ -12,7 +12,7 @@ Carbone is a report generator (PDF, DOCX, XLSX, ODT, PPTX, ODS, XML, CSV...) usi
 ## Install
 
 ```sh
-go get github.com/Ideolys/carbone-sdk-go
+go get github.com/carboneio/carbone-sdk-go
 ```
 
 ## Usage
@@ -25,7 +25,7 @@ import (
 	"io/ioutil"
 	"log"
 
-	"github.com/Ideolys/carbone-sdk-go/carbone"
+	"github.com/carboneio/carbone-sdk-go/carbone"
 )
 
 func main() {
@@ -91,7 +91,7 @@ $ node ./tests/main.js
 
 Contributions, issues and feature requests are welcome!
 
-Feel free to check [issues page](https://github.com/Ideolys/carbone-sdk-go/issues).
+Feel free to check [issues page](https://github.com/carboneio/carbone-sdk-go/issues).
 
 ## Show your support
 
