@@ -52,7 +52,7 @@ func NewCarboneSDK(args ...string) (*CSDK, error) {
 		return nil, errors.New(`NewCarboneSDK error: "apiAccessToken" argument OR "CARBONE_TOKEN" env variable is missing`)
 	}
 	csdk := &CSDK{
-		apiVersion:     "2",
+		apiVersion:     "3",
 		apiAccessToken: apiAccessToken,
 		apiURL:         "https://render.carbone.io",
 		apiTimeOut:     time.Second * 10,

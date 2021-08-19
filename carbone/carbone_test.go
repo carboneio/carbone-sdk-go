@@ -567,15 +567,15 @@ func TestRender(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		if v != 2 {
+		if v != 3 {
 			t.Fatal(errors.New("The API version is unvalid"))
 		}
-		csdk.SetAPIVersion(3)
+		csdk.SetAPIVersion(2)
 		v, err = csdk.GetAPIVersion()
 		if err != nil {
 			t.Fatal(err)
 		}
-		if v != 3 {
+		if v != 2 {
 			t.Fatal(errors.New("The API version is unvalid"))
 		}
 		csdk.SetAPIVersion(2)

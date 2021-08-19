@@ -1,5 +1,5 @@
 # Carbone Render Go SDK
-![Version](https://img.shields.io/badge/version-1.0.2-blue.svg?cacheSeconds=2592000)
+![Version](https://img.shields.io/badge/version-1.0.3-blue.svg?cacheSeconds=2592000)
 [![Documentation](https://img.shields.io/badge/documentation-yes-brightgreen.svg)](./API-REFERENCE.md)
 
 > The golang SDK to use Carbone Render easily.
