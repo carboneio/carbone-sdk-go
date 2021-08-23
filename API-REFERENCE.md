@@ -5,7 +5,7 @@ The Carbone Go SDK provides a simple interface to communicate with Carbone Rende
 ## Install the GO SDK
 
 ```sh
-go get github.com/carboneio/carbone-sdk-go
+go install github.com/carboneio/carbone-sdk-go@latest
 ```
 
 ## Quickstart with the GO SDK

@@ -1,3 +1,5 @@
+### v1.0.4
+ - Fix template automatic reupload
 ### v1.0.3
  - Update Carbone default API Version to 3
 

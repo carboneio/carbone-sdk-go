@@ -359,6 +359,29 @@ func TestGetReport(t *testing.T) {
 
 func TestRender(t *testing.T) {
 
+	t.Run("Return an error 500 from the server", func(t *testing.T) {
+
+		templateID := "ItsnotGonnaWork"
+
+		// ---- httpmock
+		httpmock.Activate()
+		defer httpmock.DeactivateAndReset()
+		httpmock.RegisterResponder("POST", "https://render.carbone.io/render/"+templateID, httpmock.NewStringResponder(500, `{"success" : false,"error":""}`))
+		// ----
+		jsonData := `{"data":{"firstname":"Felix","lastname":"Arvid Ulf Kjellberg","color":"#00FF00"},"convertTo":"pdf"}`
+		report, err := csdk.Render(templateID, jsonData, "")
+		if err != nil && err.Error() != "Carbone SDK request error status code 500" {
+			t.Fatal(errors.New("Should have return a 500 error"))
+		}
+		if len(report) != 0 {
+			t.Fatal(errors.New("The report is not empty"))
+			return
+		}
+		if httpmock.GetTotalCallCount() != 1 {
+			t.Fatal(errors.New("HTTPMOCH error - the number of requests is invalid"))
+		}
+	})
+
 	t.Run("Render a report from an existing templateID and create the file", func(t *testing.T) {
 		templateID := "f90e67221d7d5ee11058a000bdb997fb41bf149b1f88b45cb1aba9edcab8f868"
 		renderID := "r32rsqdwq2fg2f32r90e67221d7d5ee11058a000bdb997fb41bf149b1f"
@@ -437,7 +460,7 @@ func TestRender(t *testing.T) {
 				}
 				nbrPOSTrequestCall++
 				// 1 - test render from generated templateID but it does not exist
-				return httpmock.NewStringResponse(200, `{"success" : false, "error": "Error while rendering template Error: 404 Not Found"}`), nil
+				return httpmock.NewStringResponse(404, `{"success" : false, "error": "Error while rendering template Error: 404 Not Found"}`), nil
 			})
 		// 2 - upload the template and return the template ID
 		httpmock.RegisterResponder("POST", "https://render.carbone.io/template", httpmock.NewStringResponder(200, `{ "success" : false, "data": {"templateId" : "`+templateID+`" }}`))

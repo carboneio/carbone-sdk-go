@@ -220,7 +220,7 @@ func (csdk *CSDK) GetReport(renderID string) ([]byte, error) {
 	// Close the connection
 	defer resp.Body.Close()
 	if len(body) == 0 {
-		return body, errors.New("Carbone SDK GetReport request error: The response body is empty: Render again and generate a new renderId")
+		return []byte{}, errors.New("Carbone SDK GetReport request error: The response body is empty: Render again and generate a new renderId")
 	}
 	return body, nil
 }
@@ -238,13 +238,13 @@ func (csdk *CSDK) Render(pathOrTemplateID string, jsonData string, args ...strin
 		payload = args[0]
 	}
 	info, err := os.Stat(pathOrTemplateID)
-	if os.IsNotExist(err) == true {
+	if os.IsNotExist(err) {
 		// The first argument `pathOrTemplateID` is a templateID
 		cresp, er = csdk.RenderReport(pathOrTemplateID, jsonData)
 		if er != nil {
 			return []byte{}, er
 		}
-	} else if info.IsDir() == true {
+	} else if info.IsDir() {
 		return []byte{}, errors.New("Carbone SDK Render error: the path passed as argument is a directory")
 	} else {
 		// The first argument `pathOrTemplateID` is maybe a file
@@ -255,7 +255,7 @@ func (csdk *CSDK) Render(pathOrTemplateID string, jsonData string, args ...strin
 		cresp, er = csdk.RenderReport(templateID, jsonData)
 		if er != nil {
 			return []byte{}, er
-		} else if cresp.Success == false {
+		} else if !cresp.Success {
 			// if RenderReport return one of the following error, it means the template does not exist
 			// - Error while rendering template Error: ENOENT:File not found
 			// - Error while rendering template Error: 404 Not Found
@@ -270,7 +270,7 @@ func (csdk *CSDK) Render(pathOrTemplateID string, jsonData string, args ...strin
 			}
 		}
 	}
-	if cresp.Success == false {
+	if !cresp.Success {
 		// If an error is returned, it means something went wrong.
 		// if the error is "Error while rendering template Error: 404 Not Found" or "ENOENT:File not found" it means TemplateID does not exist
 		return []byte{}, errors.New(cresp.Error)
@@ -345,8 +345,8 @@ func (csdk *CSDK) doHTTPRequest(method string, url string, headers map[string]st
 	if err != nil {
 		return nil, fmt.Errorf("Carbone SDK request error: %v", err.Error())
 	}
-	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("Carbone SDK request error: status code %d", resp.StatusCode)
+	if resp.StatusCode != http.StatusOK && resp.StatusCode != 404 {
+		return resp, fmt.Errorf("Carbone SDK request error status code %d", resp.StatusCode)
 	}
 	return resp, nil
 }
