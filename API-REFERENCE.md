@@ -1,6 +1,6 @@
 # Carbone Render Go SDK
 
-The Carbone Go SDK provides a simple interface to communicate with Carbone Render easily.
+The Carbone Go SDK provides a simple interface to communicate with Carbone Cloud API easily.
 
 ## Install the GO SDK
 
@@ -174,3 +174,12 @@ It sets the the Carbone version requested. By default, it is calling the version
 func (csdk *CSDK) GetAPIVersion() (int, error)
 ```
 It returns the Carbone version.
+
+### SetApiHeaders
+Set custom Carbone headers, it will be injected for all API requests.
+```go
+csdk.SetAPIHeaders(map[string]string{
+	"carbone-template-delete-after": "86400", // https://carbone.io/api-reference.html#template-storage
+	"carbone-webhook-url": "https://...", // https://carbone.io/api-reference.html#api-webhook
+})
+```
