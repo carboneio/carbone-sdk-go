@@ -29,6 +29,7 @@ type APIResponseData struct {
 // APIResponse object created during Carbone Render response.
 type APIResponse struct {
 	Success bool            `json:"success"`
+	Message string          `json:"message,omitempty"`
 	Error   string          `json:"error,omitempty"`
 	Data    APIResponseData `json:"data"`
 }
@@ -36,6 +37,7 @@ type APIResponse struct {
 // CSDK (CarboneSDK) to use Carbone render API easily.
 type CSDK struct {
 	apiVersion     string
+	apiHeaders     map[string]string
 	apiAccessToken string
 	apiURL         string
 	apiTimeOut     time.Duration
@@ -52,11 +54,11 @@ func NewCarboneSDK(args ...string) (*CSDK, error) {
 		return nil, errors.New(`NewCarboneSDK error: "apiAccessToken" argument OR "CARBONE_TOKEN" env variable is missing`)
 	}
 	csdk := &CSDK{
-		apiVersion:     "3",
+		apiVersion:     "4",
 		apiAccessToken: apiAccessToken,
-		apiURL:         "https://render.carbone.io",
-		apiTimeOut:     time.Second * 10,
-		apiHTTPClient:  &http.Client{Timeout: time.Second * 10},
+		apiURL:         "https://api.carbone.io",
+		apiTimeOut:     time.Second * 60,
+		apiHTTPClient:  &http.Client{Timeout: time.Second * 60},
 	}
 	return csdk, nil
 }
@@ -324,6 +326,11 @@ func (csdk *CSDK) GetAPIVersion() (int, error) {
 	return strconv.Atoi(csdk.apiVersion)
 }
 
+// SetAPIHeaders get the Carbone Render version
+func (csdk *CSDK) SetAPIHeaders(headers map[string]string) {
+	csdk.apiHeaders = headers
+}
+
 // ------------------ private function
 func (csdk *CSDK) doHTTPRequest(method string, url string, headers map[string]string,
 	body io.Reader) (*http.Response, error) {
@@ -339,6 +346,15 @@ func (csdk *CSDK) doHTTPRequest(method string, url string, headers map[string]st
 	// User Api Token
 	req.Header.Set("Authorization", "Bearer "+csdk.apiAccessToken)
 	req.Header.Set("carbone-version", csdk.apiVersion)
+
+	/*
+	* Set custom Carbone headers
+	* - carbone-template-delete-after: https://carbone.io/api-reference.html#template-storage
+	* - carbone-webhook-url: https://carbone.io/api-reference.html#api-webhook
+	 */
+	for k, v := range csdk.apiHeaders {
+		req.Header.Set(k, v)
+	}
 
 	// Send request
 	resp, err := csdk.apiHTTPClient.Do(req)

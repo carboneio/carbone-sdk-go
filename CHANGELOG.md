@@ -1,5 +1,17 @@
+### v1.1.0
+ - Updated Carbone default API verison to 4
+ - Increase default timeout to 60 seconds
+ - Added method `SetAPIHeaders` to add custom headers, headers will be added automatically to HTTP requests, usage:
+  ```go
+  csdk.SetAPIHeaders(map[string]string{
+    "carbone-template-delete-after": "86400",
+    "carbone-webhook-url": "https://...",
+  })
+  ```
+
 ### v1.0.4
  - Fix template automatic reupload
+
 ### v1.0.3
  - Update Carbone default API Version to 3
 

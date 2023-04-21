@@ -94,20 +94,28 @@ func TestGenerateTemplateID(t *testing.T) {
 
 func TestAddTemplate(t *testing.T) {
 
-	t.Run("Basic Add and test access token", func(t *testing.T) {
+	t.Run("Basic Add and test access token and add custom header", func(t *testing.T) {
 
 		templateID := "f90e67221d7d5ee11058a000bdb997fb41bf149b1f88b45cb1aba9edcab8f868"
 		fakeToken := "ThisIsAToken1234"
 
 		csdk.SetAccessToken(fakeToken)
 
+		// Set custom header
+		csdk.SetAPIHeaders(map[string]string{
+			"carbone-template-delete-after": "86400",
+		})
+
 		// ---- httpmock
 		httpmock.Activate()
 		defer httpmock.DeactivateAndReset()
 
-		httpmock.RegisterResponder("POST", "https://render.carbone.io/template", func(req *http.Request) (*http.Response, error) {
+		httpmock.RegisterResponder("POST", "https://api.carbone.io/template", func(req *http.Request) (*http.Response, error) {
 			if strings.Contains(req.Header.Get("Authorization"), fakeToken) == false {
 				return httpmock.NewStringResponse(500, "Access token not provided"), nil
+			}
+			if req.Header.Get("carbone-template-delete-after") != "86400" {
+				return httpmock.NewStringResponse(500, "Custom header missing or not correct"), nil
 			}
 			return httpmock.NewStringResponse(200, `{ "success" : true, "data": {"templateId" : "`+templateID+`" }}`), nil
 		})
@@ -134,6 +142,8 @@ func TestAddTemplate(t *testing.T) {
 		if httpmock.GetTotalCallCount() != 1 {
 			t.Fatal(errors.New("HTTPMOCH error - the number of requests is invalid"))
 		}
+		// Reset custom headers
+		csdk.SetAPIHeaders(map[string]string{})
 	})
 
 	t.Run("Basic Add with payload", func(t *testing.T) {
@@ -145,7 +155,7 @@ func TestAddTemplate(t *testing.T) {
 		defer httpmock.DeactivateAndReset()
 
 		mockResp := httpmock.NewStringResponder(200, `{ "success" : true, "data": {"templateId" : "`+templateID+`" }}`)
-		httpmock.RegisterResponder("POST", "https://render.carbone.io/template", mockResp)
+		httpmock.RegisterResponder("POST", "https://api.carbone.io/template", mockResp)
 		// ----
 
 		resp, err := csdk.AddTemplate("./tests/template.test.odt", "This is an optional payload")
@@ -196,7 +206,7 @@ func TestGetTemplate(t *testing.T) {
 		defer httpmock.DeactivateAndReset()
 
 		mockResp := httpmock.NewBytesResponder(200, htmlBytes)
-		httpmock.RegisterResponder("GET", "https://render.carbone.io/template/"+templateID, mockResp)
+		httpmock.RegisterResponder("GET", "https://api.carbone.io/template/"+templateID, mockResp)
 		// ----
 
 		templateData, err := csdk.GetTemplate(templateID)
@@ -229,7 +239,7 @@ func TestDeleteTemplate(t *testing.T) {
 		// ---- httpmock
 		httpmock.Activate()
 		defer httpmock.DeactivateAndReset()
-		httpmock.RegisterResponder("DELETE", "https://render.carbone.io/template/"+templateID, httpmock.NewStringResponder(200, `{"success" : true, "error"   : null}`))
+		httpmock.RegisterResponder("DELETE", "https://api.carbone.io/template/"+templateID, httpmock.NewStringResponder(200, `{"success" : true, "error"   : null}`))
 		// ----
 
 		resp, err := csdk.DeleteTemplate(templateID)
@@ -241,7 +251,7 @@ func TestDeleteTemplate(t *testing.T) {
 		}
 
 		// ---- httpmock
-		httpmock.RegisterResponder("DELETE", "https://render.carbone.io/template/"+templateID, httpmock.NewStringResponder(200, `{"success" : false, "error"   : "The template doesn't exist"}`))
+		httpmock.RegisterResponder("DELETE", "https://api.carbone.io/template/"+templateID, httpmock.NewStringResponder(200, `{"success" : false, "error"   : "The template doesn't exist"}`))
 		// ---
 		resp, err = csdk.DeleteTemplate(templateID)
 		if err != nil {
@@ -273,7 +283,20 @@ func TestRenderReport(t *testing.T) {
 		// ---- httpmock
 		httpmock.Activate()
 		defer httpmock.DeactivateAndReset()
-		httpmock.RegisterResponder("POST", "https://render.carbone.io/render/"+templateID, httpmock.NewStringResponder(200, `{"success" : true,"error"   : null,"data": {"renderId": "`+renderID+`"}}`))
+		httpmock.RegisterResponder(
+			"POST",
+			"https://api.carbone.io/render/"+templateID,
+			func(req *http.Request) (*http.Response, error) {
+				if req.Header.Get("Content-Type") != "application/json" {
+					t.Error(errors.New("Header content type not correct"))
+				}
+				token := req.Header.Get("Authorization")
+				if len(token) == 0 {
+					t.Error(errors.New("Header Authorization not correct"))
+				}
+				return httpmock.NewStringResponder(http.StatusOK, `{"success" : true,"error"   : null,"data": {"renderId": "`+renderID+`"}}`)(req)
+			},
+		)
 		// ----
 
 		cresp, err := csdk.RenderReport(templateID, `{"data":{"firstname":"Felix","lastname":"Arvid Ulf Kjellberg","color":"#00FF00"},"convertTo":"pdf"}`)
@@ -294,6 +317,60 @@ func TestRenderReport(t *testing.T) {
 		if httpmock.GetTotalCallCount() != 1 {
 			t.Fatal(errors.New("HTTPMOCH error - the number of requests is invalid"))
 		}
+	})
+
+	t.Run("Should Render a report with webhooks", func(t *testing.T) {
+
+		webhookUrl := "https://webhook.carbone.io"
+		successMessage := "A render ID will be sent to your callback URL when the document is generated"
+
+		// ---- httpmock
+		httpmock.Activate()
+		defer httpmock.DeactivateAndReset()
+		httpmock.RegisterResponder(
+			"POST",
+			"https://api.carbone.io/render/"+templateID,
+			func(req *http.Request) (*http.Response, error) {
+				if req.Header.Get("Content-Type") != "application/json" {
+					t.Error(errors.New("Header content type not correct or missing"))
+				}
+				token := req.Header.Get("Authorization")
+				if len(token) == 0 {
+					t.Error(errors.New("Header Authorization not correct or missing"))
+				}
+				if req.Header.Get("carbone-webhook-url") != webhookUrl {
+					t.Error(errors.New("Webhook URL not correct or missing"))
+				}
+				return httpmock.NewStringResponder(http.StatusOK, `{"success": true,"message": "`+successMessage+`","data": {"renderId": ""}}`)(req)
+			},
+		)
+		// ----
+
+		csdk.SetAPIHeaders(map[string]string{
+			"carbone-webhook-url": webhookUrl,
+		})
+
+		cresp, err := csdk.RenderReport(templateID, `{"data":{"firstname":"Felix","lastname":"Arvid Ulf Kjellberg","color":"#00FF00"},"convertTo":"pdf"}`)
+		if err != nil {
+			t.Error(err)
+		}
+		if cresp.Success == false {
+			t.Error(cresp.Error)
+		}
+		if len(cresp.Data.RenderID) != 0 {
+			t.Error(errors.New("renderId must be empty as it is a webhook"))
+		}
+		if cresp.Message != successMessage {
+			t.Error(errors.New("The success message is not correct or missing"))
+		}
+
+		// -- test httpmock
+		if httpmock.GetTotalCallCount() != 1 {
+			t.Fatal(errors.New("HTTPMOCH error - the number of requests is invalid"))
+		}
+
+		// Reset headers
+		csdk.SetAPIHeaders(map[string]string{})
 	})
 
 	t.Run("Should throw an error because the templateID arg is missing", func(t *testing.T) {
@@ -332,7 +409,7 @@ func TestGetReport(t *testing.T) {
 		// ---- httpmock
 		httpmock.Activate()
 		defer httpmock.DeactivateAndReset()
-		httpmock.RegisterResponder("GET", "https://render.carbone.io/render/"+renderID, httpmock.NewBytesResponder(200, htmlBytes))
+		httpmock.RegisterResponder("GET", "https://api.carbone.io/render/"+renderID, httpmock.NewBytesResponder(200, htmlBytes))
 		// ----
 
 		report, er := csdk.GetReport(renderID)
@@ -366,7 +443,7 @@ func TestRender(t *testing.T) {
 		// ---- httpmock
 		httpmock.Activate()
 		defer httpmock.DeactivateAndReset()
-		httpmock.RegisterResponder("POST", "https://render.carbone.io/render/"+templateID, httpmock.NewStringResponder(500, `{"success" : false,"error":""}`))
+		httpmock.RegisterResponder("POST", "https://api.carbone.io/render/"+templateID, httpmock.NewStringResponder(500, `{"success" : false,"error":""}`))
 		// ----
 		jsonData := `{"data":{"firstname":"Felix","lastname":"Arvid Ulf Kjellberg","color":"#00FF00"},"convertTo":"pdf"}`
 		report, err := csdk.Render(templateID, jsonData, "")
@@ -390,8 +467,8 @@ func TestRender(t *testing.T) {
 		// ---- httpmock
 		httpmock.Activate()
 		defer httpmock.DeactivateAndReset()
-		httpmock.RegisterResponder("POST", "https://render.carbone.io/render/"+templateID, httpmock.NewStringResponder(200, `{"success" : true,"error":null,"data": {"renderId": "`+renderID+`"}}`))
-		httpmock.RegisterResponder("GET", "https://render.carbone.io/render/"+renderID, httpmock.NewBytesResponder(200, []byte(content)))
+		httpmock.RegisterResponder("POST", "https://api.carbone.io/render/"+templateID, httpmock.NewStringResponder(200, `{"success" : true,"error":null,"data": {"renderId": "`+renderID+`"}}`))
+		httpmock.RegisterResponder("GET", "https://api.carbone.io/render/"+renderID, httpmock.NewBytesResponder(200, []byte(content)))
 		// ----
 
 		jsonData := `{"data":{"firstname":"Felix","lastname":"Arvid Ulf Kjellberg","color":"#00FF00"},"convertTo":"pdf"}`
@@ -422,7 +499,7 @@ func TestRender(t *testing.T) {
 		// ---- httpmock
 		httpmock.Activate()
 		defer httpmock.DeactivateAndReset()
-		httpmock.RegisterResponder("POST", "https://render.carbone.io/render/"+templateID, httpmock.NewStringResponder(200, `{"success" : false,"error":"`+errorMessage+`"}`))
+		httpmock.RegisterResponder("POST", "https://api.carbone.io/render/"+templateID, httpmock.NewStringResponder(200, `{"success" : false,"error":"`+errorMessage+`"}`))
 		// ----
 
 		jsonData := `{"data":{"firstname":"Felix","lastname":"Arvid Ulf Kjellberg","color":"#00FF00"},"convertTo":"pdf"}`
@@ -452,7 +529,7 @@ func TestRender(t *testing.T) {
 		httpmock.Activate()
 		defer httpmock.DeactivateAndReset()
 
-		httpmock.RegisterResponder("POST", "https://render.carbone.io/render/"+templateID,
+		httpmock.RegisterResponder("POST", "https://api.carbone.io/render/"+templateID,
 			func(req *http.Request) (*http.Response, error) {
 				if nbrPOSTrequestCall >= 1 {
 					// 3 - render the report and return a reportID // REQUEST NO CALLED
@@ -463,9 +540,9 @@ func TestRender(t *testing.T) {
 				return httpmock.NewStringResponse(404, `{"success" : false, "error": "Error while rendering template Error: 404 Not Found"}`), nil
 			})
 		// 2 - upload the template and return the template ID
-		httpmock.RegisterResponder("POST", "https://render.carbone.io/template", httpmock.NewStringResponder(200, `{ "success" : false, "data": {"templateId" : "`+templateID+`" }}`))
+		httpmock.RegisterResponder("POST", "https://api.carbone.io/template", httpmock.NewStringResponder(200, `{ "success" : false, "data": {"templateId" : "`+templateID+`" }}`))
 		// 4 - Get the template
-		httpmock.RegisterResponder("GET", "https://render.carbone.io/render/"+renderID, httpmock.NewBytesResponder(200, []byte(fileContent)))
+		httpmock.RegisterResponder("GET", "https://api.carbone.io/render/"+renderID, httpmock.NewBytesResponder(200, []byte(fileContent)))
 		// ----
 
 		jsonData := `{"data":{"name":"Arvid Ulf Kjellberg"},"convertTo":"html"}`
@@ -498,9 +575,9 @@ func TestRender(t *testing.T) {
 		httpmock.Activate()
 		defer httpmock.DeactivateAndReset()
 		// 1 - generate templateID and try to render, it already exist, it returns the renderID
-		httpmock.RegisterResponder("POST", "https://render.carbone.io/render/"+templateID, httpmock.NewStringResponder(200, `{"success" : true,"error":null,"data": {"renderId": "`+renderID+`"}}`))
+		httpmock.RegisterResponder("POST", "https://api.carbone.io/render/"+templateID, httpmock.NewStringResponder(200, `{"success" : true,"error":null,"data": {"renderId": "`+renderID+`"}}`))
 		// 2 - Get the template
-		httpmock.RegisterResponder("GET", "https://render.carbone.io/render/"+renderID, httpmock.NewBytesResponder(200, []byte(fileContent)))
+		httpmock.RegisterResponder("GET", "https://api.carbone.io/render/"+renderID, httpmock.NewBytesResponder(200, []byte(fileContent)))
 		// ----
 
 		jsonData := `{"data":{"firstname":"Felix","lastname":"Arvid Ulf Kjellberg","color":"#00FF00"},"convertTo":"html"}`
@@ -534,11 +611,11 @@ func TestRender(t *testing.T) {
 		defer httpmock.DeactivateAndReset()
 
 		// 1 - {CALLED TWICE} test render from generated templateID but it does not exist
-		httpmock.RegisterResponder("POST", "https://render.carbone.io/render/"+templateID, httpmock.NewStringResponder(200, `{"success" : false, "error": "`+errorMessage+`"}`))
+		httpmock.RegisterResponder("POST", "https://api.carbone.io/render/"+templateID, httpmock.NewStringResponder(200, `{"success" : false, "error": "`+errorMessage+`"}`))
 		// 2 - upload the template and return the template ID
-		httpmock.RegisterResponder("POST", "https://render.carbone.io/template", httpmock.NewStringResponder(200, `{ "success" : false, "data": {"templateId" : "`+templateID+`" }}`))
+		httpmock.RegisterResponder("POST", "https://api.carbone.io/template", httpmock.NewStringResponder(200, `{ "success" : false, "data": {"templateId" : "`+templateID+`" }}`))
 		// 4 - Get the template
-		httpmock.RegisterResponder("GET", "https://render.carbone.io/render/"+renderID, httpmock.NewBytesResponder(200, []byte(fileContent)))
+		httpmock.RegisterResponder("GET", "https://api.carbone.io/render/"+renderID, httpmock.NewBytesResponder(200, []byte(fileContent)))
 		// ----
 
 		jsonData := `{"data":{"name":"Arvid Ulf Kjellberg"},"convertTo":"html"}`
@@ -590,7 +667,7 @@ func TestRender(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		if v != 3 {
+		if v != 4 {
 			t.Fatal(errors.New("The API version is unvalid"))
 		}
 		csdk.SetAPIVersion(2)
