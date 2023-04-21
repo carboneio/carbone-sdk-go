@@ -1,4 +1,4 @@
-# Carbone Render Go SDK
+# Carbone Cloud API Go SDK
 ![GitHub release (latest by date)](https://img.shields.io/github/v/release/carboneio/carbone-sdk-go?style=for-the-badge)
 [![Documentation](https://img.shields.io/badge/documentation-yes-brightgreen.svg?style=for-the-badge)](./API-REFERENCE.md)
 
