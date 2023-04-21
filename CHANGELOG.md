@@ -1,6 +1,6 @@
 ### v1.1.0
- - Updated Carbone default API verison to 4
- - Increase default timeout to 60 seconds
+ - Updated Carbone default API version to 4
+ - Increased default timeout to 60 seconds
  - Added method `SetAPIHeaders` to add custom headers, headers will be added automatically to HTTP requests, usage:
   ```go
   csdk.SetAPIHeaders(map[string]string{
