@@ -44,20 +44,28 @@ type CSDK struct {
 	apiHTTPClient  *http.Client
 }
 
-// NewCarboneSDK is a constructor and return a new instance of CSDK
-func NewCarboneSDK(args ...string) (*CSDK, error) {
+// NewCarboneSDK is a constructor and return a new instance of CSDK apikey is mandatory carboneUrl have to be used only for on premise installation
+func NewCarboneSDK(apikey string, carboneUrl string) (*CSDK, error) {
 	apiAccessToken := os.Getenv("CARBONE_TOKEN")
-	if len(args) > 0 && args[0] != "" {
-		apiAccessToken = args[0]
+	cloudCarboneUrl := "https://api.carbone.io"
+	apiTimeout := time.Second * 60
+
+	if apikey != "" {
+		apiAccessToken = apikey
 	}
 	if apiAccessToken == "" {
 		return nil, errors.New(`NewCarboneSDK error: "apiAccessToken" argument OR "CARBONE_TOKEN" env variable is missing`)
 	}
+
+	if carboneUrl != "" {
+		cloudCarboneUrl = carboneUrl
+	}
+
 	csdk := &CSDK{
 		apiVersion:     "4",
 		apiAccessToken: apiAccessToken,
-		apiURL:         "https://api.carbone.io",
-		apiTimeOut:     time.Second * 60,
+		apiURL:         cloudCarboneUrl,
+		apiTimeOut:     apiTimeout,
 		apiHTTPClient:  &http.Client{Timeout: time.Second * 60},
 	}
 	return csdk, nil
