@@ -62,14 +62,6 @@ First, Go to the `carbone` package directory.
 ```bash
 $ cd carbone
 ```
-Then, create an environment variable `CARBONE_TOKEN` with the Carbone access token as value:
-```bash
-$ export CARBONE_TOKEN="YOUR_ACCESS_TOKEN"
-```
-Check if it is set by running:
-```bash
-$ printenv | grep "CARBONE_TOKEN"
-```
 To run all the tests (-v for verbose output):
 ```bash
 $ go test -v

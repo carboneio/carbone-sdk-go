@@ -1,3 +1,7 @@
+### v1.2.0
+ - The API key is not blocking the instantiation and is not required anymore as an environment variable nor as the first argument of the constructor. Nevertheless, A warning message is printed if the key is missing.
+ - A custom API url can be passed a second argument of the `NewCarboneSDK` function, or it can be passed as environment varible `CARBONE_URL`
+
 ### v1.1.0
  - Updated Carbone default API version to 4
  - Increased default timeout to 60 seconds

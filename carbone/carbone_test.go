@@ -25,6 +25,56 @@ func TestMain(m *testing.M) {
 	os.Exit(status)
 }
 
+func TestDefaultConfig (t *testing.T) {
+	t.Run("Should get a default config", func (t *testing.T) {
+		if csdk.apiURL != "https://api.carbone.io" {
+			t.Error(errors.New("Default URL not valid"))
+		}
+		if csdk.apiVersion != "4" {
+			t.Error(errors.New("Default URL not valid"))
+		}
+		if csdk.apiAccessToken != "" {
+			t.Error(errors.New("Api Key not empty"))
+		}
+	})
+}
+
+func TestOnPremise(t *testing.T) {
+	t.Run("Instanciate a new SDK with a custom API URL as argument", func (t *testing.T) {
+		var apiKey = "1234"
+		var apiURL = "https://test.carbone.io"
+		csdk2, err := NewCarboneSDK(apiKey, apiURL)
+		if err != nil {
+			log.Fatal(err)
+		}
+		if (csdk2.apiURL != apiURL) {
+			t.Error(errors.New("URL differents"))
+		}
+		if (csdk2.apiAccessToken != apiKey) {
+			t.Error(errors.New("API Key differents"))
+		}
+	})
+
+	t.Run("Instanciate a new SDK with a custom API URL as environment variable", func (t *testing.T) {
+		var apiKey = "4321"
+		var apiURL = "https://env.test.carbone.io"
+		os.Setenv("CARBONE_TOKEN", apiKey)
+		os.Setenv("CARBONE_URL", apiURL)
+		csdk3, err := NewCarboneSDK()
+		if err != nil {
+			log.Fatal(err)
+		}
+		if (csdk3.apiURL != apiURL) {
+			t.Error(errors.New("URL differents"))
+		}
+		if (csdk3.apiAccessToken != apiKey) {
+			t.Error(errors.New("API Key differents"))
+		}
+		os.Unsetenv("CARBONE_TOKEN")
+		os.Unsetenv("CARBONE_URL")
+	})
+}
+
 func TestGenerateTemplateID(t *testing.T) {
 	t.Run("(node test 1) generate a templateID from a file without payload", func(t *testing.T) {
 		template := "./tests/template.test.odt"

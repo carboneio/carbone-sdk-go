@@ -50,7 +50,8 @@ func main() {
 func NewCarboneSDK(SecretAccessToken ...string) (*CSDK, error)
 ```
 Function to create a new instance of CSDK (CarboneSDK).
-The access token can be pass as an argument to NewCarboneSDK (`args[0]`) or by the environment variable "CARBONE_TOKEN".
+The access token can be pass as the first argument to NewCarboneSDK (`args[0]`) or by the environment variable "CARBONE_TOKEN".
+The Api URL can be pass the second argument (`args[1]`) or by the environment variable "CARBONE_URL".
 To set a new environment variable, use the command:
 ```bash
 $ export CARBONE_TOKEN=your-secret-token
@@ -65,6 +66,8 @@ Example
 csdk, err := carbone.NewCarboneSDK("YOUR-ACCESS-TOKEN")
 // Carbone access token passed as environment variable "Carbone TOKEN"
 csdk, err := carbone.NewCarboneSDK()
+// Carbone access token passed as parameter with a custom API URL as second parameter
+csdk, err := carbone.NewCarboneSDK("TOKEN", "https://test.carbone.io")
 ```
 ### Render
 ```go

@@ -46,17 +46,24 @@ type CSDK struct {
 
 // NewCarboneSDK is a constructor and return a new instance of CSDK
 func NewCarboneSDK(args ...string) (*CSDK, error) {
+	apiURL := os.Getenv("CARBONE_URL")
 	apiAccessToken := os.Getenv("CARBONE_TOKEN")
 	if len(args) > 0 && args[0] != "" {
 		apiAccessToken = args[0]
 	}
 	if apiAccessToken == "" {
-		return nil, errors.New(`NewCarboneSDK error: "apiAccessToken" argument OR "CARBONE_TOKEN" env variable is missing`)
+		fmt.Println(`Carbone SDK Warning: Cloud API access token and "CARBONE_TOKEN" env variable are missing`)
+	}
+	if len(args) > 0 && args[1] != "" {
+		apiURL = args[1]
+	}
+	if apiURL == "" {
+		apiURL = "https://api.carbone.io"
 	}
 	csdk := &CSDK{
 		apiVersion:     "4",
 		apiAccessToken: apiAccessToken,
-		apiURL:         "https://api.carbone.io",
+		apiURL:         apiURL,
 		apiTimeOut:     time.Second * 60,
 		apiHTTPClient:  &http.Client{Timeout: time.Second * 60},
 	}
