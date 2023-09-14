@@ -54,7 +54,7 @@ func NewCarboneSDK(args ...string) (*CSDK, error) {
 	if apiAccessToken == "" {
 		fmt.Println(`Carbone SDK Warning: Cloud API access token and "CARBONE_TOKEN" env variable are missing`)
 	}
-	if len(args) > 0 && args[1] != "" {
+	if len(args) == 2 && args[1] != "" {
 		apiURL = args[1]
 	}
 	if apiURL == "" {

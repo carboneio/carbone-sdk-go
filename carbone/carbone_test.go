@@ -55,6 +55,21 @@ func TestOnPremise(t *testing.T) {
 		}
 	})
 
+	t.Run("Instanciate a new SDK with only an API Key", func (t *testing.T) {
+		var apiKey = "1234"
+		var apiURL = "https://api.carbone.io"
+		csdk4, err := NewCarboneSDK(apiKey)
+		if err != nil {
+			log.Fatal(err)
+		}
+		if (csdk4.apiURL != apiURL) {
+			t.Error(errors.New("URL differents"))
+		}
+		if (csdk4.apiAccessToken != apiKey) {
+			t.Error(errors.New("API Key differents"))
+		}
+	})
+
 	t.Run("Instanciate a new SDK with a custom API URL as environment variable", func (t *testing.T) {
 		var apiKey = "4321"
 		var apiURL = "https://env.test.carbone.io"
